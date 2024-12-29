@@ -1,5 +1,5 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 # COMMON SETTINGS
 PROJECT(OneDSolver)
@@ -74,7 +74,7 @@ ENDIF()
 # FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # COMPILER FLAGS
-SET(CMAKE_CXX_FLAGS "-g -m64 -O3 -std=c++0x -fPIC")
+SET(CMAKE_CXX_FLAGS "-g -m64 -O3 -std=c++20 -fPIC")
 
 # PLACE EXECUTABLE IN BIN FOLDER
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -109,3 +109,13 @@ ENDIF()
 if (BUILD_SV_INSTALLER) 
     add_subdirectory("${CMAKE_SOURCE_DIR}/Distribution")
 ENDIF()
+
+# NLOHMANN JSON FOR SERIALIZATION
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2  # You can specify a version or use the latest tag
+)
+FetchContent_MakeAvailable(nlohmann_json)
+target_include_directories(${PROJECT_NAME} PUBLIC ${nlohmann_json_SOURCE_DIR}/single_include)
