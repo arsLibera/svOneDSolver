@@ -4,7 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: build solver
         shell: bash
         run: |
@@ -19,4 +19,8 @@ jobs:
           pip install numpy
       - name: result tests
         run: |
-          pytest
+          pytest Tests/SystemTests
+      - name: result unit tests 
+        run: |
+          cd build_skyline
+          ctest
