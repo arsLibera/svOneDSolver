@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
+
 #include <nlohmann/json.hpp>
 
 #include "cvOneDOptionsJsonSerializer.h"
