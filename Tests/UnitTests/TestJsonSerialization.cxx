@@ -1,12 +1,16 @@
-
-#include "testJson.h"
-
-#include <nlohmann/json.hpp>
 #include <iostream>
 #include <fstream>
 
+#include <gtest/gtest.h>
+
+#include "cvOneDOptions.h"
+#include "cvOneDOptionsJsonParser.h"
+#include "cvOneDOptionsJsonSerializer.h"
+
+#include "OptionsTestHelpers.hpp"
+
 // Test function to demonstrate the serialization
-void test_json(){
+cvOneD::options test_input_options(){
     cvOneD::options opts;
 
     opts.modelName = "MyModel";
@@ -16,12 +20,10 @@ void test_json(){
     opts.nodeZcoord = {7.7, 8.8, 9.9};
 
     // Joint Data
-    opts.jointName = {"Joint1", "Joint2", "Joint3"};
-    // We would also like to include "jointNode" here
-    // once it is properly integrated in all existing
-    // input files.
-    opts.jointInletName = {"Inlet1", "Inlet2", "Inlet3"};
-    opts.jointOutletName = {"Outlet1", "Outlet2", "Outlet3"};
+    opts.jointName = {"J1", "J2", "J3"};
+    opts.jointNode = {"Node1", "Node2", "Node3"};
+    opts.jointInletName = {"IN1", "IN2", "IN3"};
+    opts.jointOutletName = {"OUT1", "OUT2", "OUT3"};
 
     opts.jointInletListNames = {"IN1", "IN2", "IN3"};
     opts.jointInletListNumber = {1, 1, 1};
@@ -81,9 +83,26 @@ void test_json(){
     opts.useStab = 0;
     opts.outputType = "NONE";
 
-    // Serialize the options into a JSON object
-    cvOneD::writeJsonOptions(opts,"out.json");
-    
-    cvOneD::readJsonOptions("out.json");
+    return opts;
+}
 
+TEST(JsonParser, deserialize){
+    std::string inputFilename {"TestFiles/TestInput.json"};
+    auto const expOptions = test_input_options();
+
+    auto const actOptions = cvOneD::readJsonOptions(inputFilename);
+    expectEqOptions(actOptions, expOptions);
+}
+
+TEST(JsonParser, serialize){
+    // For now, we're just going to verify that the JSON output
+    // exactly matches the contents of the file.
+    std::string jsonFilename {"TestFiles/TestInput.json"};
+    auto const expJsonStr = readFileContents(jsonFilename);
+    std::string actFilename{"output.json"};
+
+    cvOneD::writeJsonOptions(test_input_options(),actFilename);
+    auto const actJsonStr = readFileContents(actFilename);
+
+    EXPECT_EQ(actJsonStr, expJsonStr);
 }

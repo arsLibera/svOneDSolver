@@ -1,0 +1,215 @@
+{
+  "modelName": "MyModel",
+  "solverOptions": {
+    "timeStep": 0.001087,
+    "stepSize": 10,
+    "maxStep": 100,
+    "quadPoints": 2,
+    "inletDataTableName": "STEADY_FLOW",
+    "boundaryType": "FLOW",
+    "convergenceTolerance": 1e-06,
+    "useIV": 1,
+    "useStab": 0,
+    "outputType": "NONE"
+  },
+  "materials": [
+    {
+      "name": "Material1",
+      "type": "Type1",
+      "density": 1000.0,
+      "viscosity": 0.3,
+      "pRef": 1.0,
+      "exponent": 0.5,
+      "param1": 10.0,
+      "param2": 30.0,
+      "param3": 50.0
+    },
+    {
+      "name": "Material2",
+      "type": "Type2",
+      "density": 1200.0,
+      "viscosity": 0.4,
+      "pRef": 1.2,
+      "exponent": 0.6,
+      "param1": 20.0,
+      "param2": 40.0,
+      "param3": 60.0
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Node1",
+      "x": 1.1,
+      "y": 4.4,
+      "z": 7.7
+    },
+    {
+      "name": "Node2",
+      "x": 2.2,
+      "y": 5.5,
+      "z": 8.8
+    },
+    {
+      "name": "Node3",
+      "x": 3.3,
+      "y": 6.6,
+      "z": 9.9
+    }
+  ],
+  "joints": [
+    {
+      "joint": {
+        "id": "J1",
+        "associatedNode": "Node1",
+        "inletName": "IN1",
+        "outletName": "OUT1"
+      },
+      "jointInlet": {
+        "name": "IN1",
+        "totalSegments": 1,
+        "segments": [
+          0
+        ]
+      },
+      "jointOutlet": {
+        "name": "OUT1",
+        "totalSegments": 1,
+        "segments": [
+          1
+        ]
+      }
+    },
+    {
+      "joint": {
+        "id": "J2",
+        "associatedNode": "Node2",
+        "inletName": "IN2",
+        "outletName": "OUT2"
+      },
+      "jointInlet": {
+        "name": "IN2",
+        "totalSegments": 1,
+        "segments": [
+          1
+        ]
+      },
+      "jointOutlet": {
+        "name": "OUT2",
+        "totalSegments": 1,
+        "segments": [
+          2
+        ]
+      }
+    },
+    {
+      "joint": {
+        "id": "J3",
+        "associatedNode": "Node3",
+        "inletName": "IN3",
+        "outletName": "OUT3"
+      },
+      "jointInlet": {
+        "name": "IN3",
+        "totalSegments": 1,
+        "segments": [
+          2
+        ]
+      },
+      "jointOutlet": {
+        "name": "OUT3",
+        "totalSegments": 1,
+        "segments": [
+          3
+        ]
+      }
+    }
+  ],
+  "segments": [
+    {
+      "name": "Aorta",
+      "id": 0,
+      "length": 17.670671,
+      "totalElements": 50,
+      "inNode": 0,
+      "outNode": 1,
+      "inletArea": 5.027254990390394,
+      "outletArea": 1.6068894493599328,
+      "flow": 0.0,
+      "materialName": "MAT1",
+      "lossType": "NONE",
+      "branchAngle": 0.0,
+      "upstreamSegment": 0,
+      "branchSegment": 0,
+      "boundaryType": "NOBOUND",
+      "dataTableName": "NONE"
+    },
+    {
+      "name": "iliacR",
+      "id": 1,
+      "length": 12.997461,
+      "totalElements": 50,
+      "inNode": 1,
+      "outNode": 3,
+      "inletArea": 1.55,
+      "outletArea": 0.3525652531134944,
+      "flow": 0.0,
+      "materialName": "MAT1",
+      "lossType": "NONE",
+      "branchAngle": 0.0,
+      "upstreamSegment": 0,
+      "branchSegment": 0,
+      "boundaryType": "RCR",
+      "dataTableName": "RCR_VALS"
+    },
+    {
+      "name": "iliacL",
+      "id": 2,
+      "length": 12.997461,
+      "totalElements": 50,
+      "inNode": 1,
+      "outNode": 2,
+      "inletArea": 1.55,
+      "outletArea": 0.3525652531134944,
+      "flow": 0.0,
+      "materialName": "MAT1",
+      "lossType": "NONE",
+      "branchAngle": 0.0,
+      "upstreamSegment": 0,
+      "branchSegment": 0,
+      "boundaryType": "RCR",
+      "dataTableName": "RCR_VALS"
+    }
+  ],
+  "dataTables": [
+    {
+      "name": "R_VALS",
+      "type": "LIST",
+      "values": [
+        0.0,
+        991.36
+      ]
+    },
+    {
+      "name": "STEADY_FLOW",
+      "type": "LIST",
+      "values": [
+        0.0,
+        7.985,
+        1.0,
+        7.985
+      ]
+    },
+    {
+      "name": "PULS_FLOW",
+      "type": "LIST",
+      "values": [
+        0.0,
+        0.0,
+        0.019668108360095,
+        -4.11549971450822,
+        0.055247073448669,
+        -7.16517105402019
+      ]
+    }
+  ]
+}

@@ -70,9 +70,9 @@ void parseJointData(const nlohmann::ordered_json& jsonData, options& opts) try {
         // Parse JOINT data
         const auto& joint = jointEntry.at("joint"); // Ensures "joint" exists
         opts.jointName.push_back(joint.at("id").get<std::string>());
-        opts.nodeName.push_back(joint.at("associatedNode").get<std::string>());
-        opts.jointInletListNames.push_back(joint.at("inletName").get<std::string>());
-        opts.jointOutletListNames.push_back(joint.at("outletName").get<std::string>());
+        opts.jointNode.push_back(joint.at("associatedNode").get<std::string>());
+        opts.jointInletName.push_back(joint.at("inletName").get<std::string>());
+        opts.jointOutletName.push_back(joint.at("outletName").get<std::string>());
 
         // Parse JOINTINLET data
         const auto& jointInlet = jointEntry.at("jointInlet"); // Ensures "jointInlet" exists

@@ -43,7 +43,7 @@ namespace cvOneD{
 // ======================
 // READ SINGLE MODEL FILE
 // ======================
-void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec includedFiles){
+void readOptionsLegacyFormat(string inputFile, options* opts){
 
   // Message
   printf("\n");
@@ -54,7 +54,9 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
   cvLongVec   tempIntVec;
   string      matType;
   cvDoubleVec temp;
-  bool doInclude = false;
+  
+  bool solverOptionsDefined = false;
+  bool modelNameDefined = false;
 
   // Declare input File
   ifstream infile;
@@ -65,9 +67,6 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
   int lineCount = 1;
   int reminder = 0;
   int totSegments = 0;
-
-  bool solverOptionDefined = false;
-  bool modelNameDefined = false;
 
   // Read Data From File
   std::string buffer;
@@ -222,7 +221,7 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
         }
       }else if(upper_string(tokenizedString[0]) == "SOLVEROPTIONS"){
         // printf("Found Solver Options.\n");
-        if(solverOptionDefined){
+        if(solverOptionsDefined){
           throw cvException("ERROR: SOLVEROPTIONS already defined\n");
         }
         if(tokenizedString.size() > 10){
@@ -252,7 +251,7 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
         }catch(...){
           throw cvException(string("ERROR: Invalid SOLVEROPTIONS Format. Line " + to_string(lineCount) + "\n").c_str());
         }
-        solverOptionDefined = true;
+        solverOptionsDefined = true;
       }else if(upper_string(tokenizedString[0]) == std::string("OUTPUT")){
         if(tokenizedString.size() > 3){
           throw cvException(string("ERROR: Too many parameters for OUTPUT token. Line " + to_string(lineCount) + "\n").c_str());
@@ -348,23 +347,6 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
         }catch(...){
           throw cvException("ERROR: Invalid MATERIAL Format.\n");
         }
-      }else if(upper_string(tokenizedString[0]) == std::string("INCLUDE")){
-        // Check if the file is active
-        if(upper_string(tokenizedString[2]) == "TRUE"){
-          doInclude = true;
-        }else if(upper_string(tokenizedString[2]) == "FALSE"){
-          doInclude = false;
-        }else{
-          throw cvException(string("ERROR: Invalid INCLUDE switch format. Line " + to_string(lineCount) + "\n").c_str());
-        }
-        try{
-          // If active include file in list
-          if(doInclude){
-            includedFiles.push_back(tokenizedString[1]);
-          }
-        }catch(...){
-          throw cvException(string("ERROR: Invalid INCLUDE Format. Line " + to_string(lineCount) + "\n").c_str());
-        }
       }else if((tokenizedString.size() == 0)||(tokenizedString[0].at(0) == '#')||(tokenizedString[0].find_first_not_of(' ') == std::string::npos)){
         // printf("Found Blank.\n");
         // COMMENT OR BLANK LINE: DO NOTHING
@@ -381,27 +363,6 @@ void readSingleOptionsLegacyFormat(string inputFile, options* opts, cvStringVec 
   }
   // Close File
   infile.close();
-}
-
-void readNestedOptionsLegacyFormat(string inputFile, options* opts){
-
-  // List of included Files
-  cvStringVec includedFiles;
-  string currentFile;
-
-  // Read First File
-  readSingleOptionsLegacyFormat(inputFile,opts,includedFiles);
-
-  //Read Nested Files
-  while(includedFiles.size() > 0){
-
-    // Get the first file Name
-    currentFile = includedFiles[0];
-    // Delete the First element
-    includedFiles.erase(includedFiles.begin());
-    // Read the file and store new included files
-    readSingleOptionsLegacyFormat(inputFile,opts,includedFiles);
-  }
 }
 
 namespace{
