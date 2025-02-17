@@ -29,10 +29,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "main.h"
 #include <string.h>
 #include <optional>
 
+#include "cvOneDGlobal.h"
+#include "cvOneDModelManager.h"
+#include "cvOneDOptions.h"
 #include "cvOneDOptionsJsonParser.h"
 #include "cvOneDOptionsJsonSerializer.h"
 #include "cvOneDOptionsLegacySerializer.h"
@@ -403,9 +405,7 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
                    *argOptions.jsonConversionOutput);
   }
 
-  // We're requiring users to specify a JSON input file in 
-  // the new behavior. Otherwise, there's no point to 
-  // running the program at all.
+  // Only return the input args if the user provided them
   if(argOptions.jsonInput){
     return cvOneD::readJsonOptions(*argOptions.jsonInput);
   }
@@ -423,12 +423,14 @@ int main(int argc, char** argv){
 
   try{
 
-    // Eventually, simulationOptions should be const
     auto const simulationOptions = parseArgsAndHandleOptions(argc,argv);
     if(simulationOptions){
+      // The simulation options were defined so we can run the simulation
       runOneDSolver(*simulationOptions);
-    }
-    else{
+    } else{
+      // The user could just want to convert legacy input *.in -> *.json 
+      // so we don't error but we notify the user that no simulation
+      // is run.
       std::cout << "The simulation was not run because" 
                    " no input file was provided." << std::endl;
     }
