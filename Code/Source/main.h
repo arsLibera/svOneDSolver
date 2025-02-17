@@ -40,12 +40,4 @@
 # include "cvOneDDataTable.h"
 # include "cvOneDException.h"
 
-using namespace std;
-
-void WriteHeader();
-int  getDataTableIDFromStringKey(string key);
-void createAndRunModel(cvOneD::options* opts);
-void readModelFile(string inputFile, cvOneD::options* opts, cvStringVec includedFiles);
-void readModel(string inputFile, cvOneD::options* opts);
-void runOneDSolver(string inputFile);
 
