@@ -1,3 +1,4 @@
+
 /* Copyright (c) Stanford University, The Regents of the University of
  *               California, and others.
  *
@@ -29,23 +30,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-# include <string.h>
-# include <iostream>
-# include <fstream>
+#ifndef CVONEDOPTIONSJSONSERIALIZER_H
+#define CVONEDOPTIONSJSONSERIALIZER_H
 
-# include "cvOneDGlobal.h"
-# include "cvOneDUtility.h"
-# include "cvOneDModelManager.h"
-# include "cvOneDOptions.h"
-# include "cvOneDDataTable.h"
-# include "cvOneDException.h"
+#include "cvOneDOptions.h"
 
 using namespace std;
 
-void WriteHeader();
-int  getDataTableIDFromStringKey(string key);
-void createAndRunModel(cvOneDOptions* opts);
-void readModelFile(string inputFile, cvOneDOptions* opts, cvStringVec includedFiles);
-void readModel(string inputFile, cvOneDOptions* opts);
-void runOneDSolver(string inputFile);
+namespace cvOneD{
+
+void writeJsonOptions(options const& opts, string const& fileName);
+
+} // namespace cvOneD
+
+#endif // CVONEDOPTIONSJSONSERIALIZER_H
+
+
 

@@ -29,9 +29,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "main.h"
 #include <string.h>
+#include <optional>
 
+#include "cvOneDGlobal.h"
+#include "cvOneDModelManager.h"
+#include "cvOneDOptions.h"
+#include "cvOneDOptionsJsonParser.h"
+#include "cvOneDOptionsJsonSerializer.h"
 #include "cvOneDOptionsLegacySerializer.h"
 
 using namespace std;
@@ -70,116 +75,116 @@ int getDataTableIDFromStringKey(string key){
 // ===============================
 // CREATE MODEL AND RUN SIMULATION
 // ===============================
-void createAndRunModel(cvOneDOptions* opts){
+void createAndRunModel(const cvOneD::options& opts) {
 
   // MESSAGE
   printf("\n");
   printf("Creating and Running Model ...\n");
 
   // CREATE MODEL MANAGER
-  cvOneDModelManager* oned = new cvOneDModelManager((char*)opts->modelName.c_str());
+  cvOneDModelManager* oned = new cvOneDModelManager((char*)opts.modelName.c_str());
 
   // CREATE NODES
   printf("Creating Nodes ... \n");
-  int totNodes = opts->nodeName.size();
+  int totNodes = opts.nodeName.size();
   int nodeError = CV_OK;
-  for(int loopA=0;loopA<totNodes;loopA++){
+  for(int loopA = 0; loopA < totNodes; loopA++) {
     // Finally Create Joint
-    nodeError = oned->CreateNode((char*)opts->nodeName[loopA].c_str(),
-                                   opts->nodeXcoord[loopA], opts->nodeYcoord[loopA], opts->nodeZcoord[loopA]);
-    if(nodeError == CV_ERROR){
+    nodeError = oned->CreateNode((char*)opts.nodeName[loopA].c_str(),
+                                 opts.nodeXcoord[loopA], opts.nodeYcoord[loopA], opts.nodeZcoord[loopA]);
+    if(nodeError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating NODE " + to_string(loopA) + "\n").c_str());
     }
   }
 
   // CREATE JOINTS
   printf("Creating Joints ... \n");
-  int totJoints = opts->jointName.size();
+  int totJoints = opts.jointName.size();
   int jointError = CV_OK;
-  int* asInlets = NULL;
-  int* asOutlets = NULL;
+  int* asInlets = nullptr;
+  int* asOutlets = nullptr;
   string currInletName;
   string currOutletName;
   int jointInletID = 0;
   int jointOutletID = 0;
   int totJointInlets = 0;
   int totJointOutlets = 0;
-  for(int loopA=0;loopA<totJoints;loopA++){
+  for(int loopA = 0; loopA < totJoints; loopA++) {
     // GET NAMES FOR INLET AND OUTLET
-    currInletName = opts->jointInletName[loopA];
-    currOutletName = opts->jointOutletName[loopA];
+    currInletName = opts.jointInletName[loopA];
+    currOutletName = opts.jointOutletName[loopA];
     // FIND JOINTINLET INDEX
-    jointInletID = getListIDWithStringKey(currInletName,opts->jointInletListNames);
-    if(jointInletID < 0){
+    jointInletID = getListIDWithStringKey(currInletName, opts.jointInletListNames);
+    if(jointInletID < 0) {
       throw cvException(string("ERROR: Cannot Find JOINTINLET for key " + currInletName).c_str());
     }
-    totJointInlets = opts->jointInletListNumber[jointInletID];
+    totJointInlets = opts.jointInletListNumber[jointInletID];
     // FIND JOINTOUTLET INDEX
-    jointOutletID = getListIDWithStringKey(currOutletName,opts->jointOutletListNames);
-    if(jointInletID < 0){
+    jointOutletID = getListIDWithStringKey(currOutletName, opts.jointOutletListNames);
+    if(jointInletID < 0) {
       throw cvException(string("ERROR: Cannot Find JOINTOUTLET for key " + currOutletName).c_str());
     }
     // GET TOTALS
-    totJointInlets = opts->jointInletListNumber[jointInletID];
-    totJointOutlets = opts->jointOutletListNumber[jointOutletID];
+    totJointInlets = opts.jointInletListNumber[jointInletID];
+    totJointOutlets = opts.jointOutletListNumber[jointOutletID];
     // ALLOCATE INLETS AND OUTLET LIST
-    asInlets = NULL;
-    asOutlets = NULL;
-    if(totJointInlets > 0){
+    asInlets = nullptr;
+    asOutlets = nullptr;
+    if(totJointInlets > 0) {
       asInlets = new int[totJointInlets];
-      for(int loopB=0;loopB<totJointInlets;loopB++){
-        asInlets[loopB] = opts->jointInletList[jointInletID][loopB];
+      for(int loopB = 0; loopB < totJointInlets; loopB++) {
+        asInlets[loopB] = opts.jointInletList[jointInletID][loopB];
       }
     }
-    if(totJointOutlets > 0){
+    if(totJointOutlets > 0) {
       asOutlets = new int[totJointOutlets];
-      for(int loopB=0;loopB<totJointOutlets;loopB++){
-        asOutlets[loopB] = opts->jointOutletList[jointOutletID][loopB];
+      for(int loopB = 0; loopB < totJointOutlets; loopB++) {
+        asOutlets[loopB] = opts.jointOutletList[jointOutletID][loopB];
       }
     }
     // Finally Create Joint
-    jointError = oned->CreateJoint((char*)opts->jointName[loopA].c_str(),
-                                   opts->nodeXcoord[loopA], opts->nodeYcoord[loopA], opts->nodeZcoord[loopA],
-                                   totJointInlets, totJointOutlets,asInlets,asOutlets);
-    if(jointError == CV_ERROR){
+    jointError = oned->CreateJoint((char*)opts.jointName[loopA].c_str(),
+                                   opts.nodeXcoord[loopA], opts.nodeYcoord[loopA], opts.nodeZcoord[loopA],
+                                   totJointInlets, totJointOutlets, asInlets, asOutlets);
+    if(jointError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating JOINT " + to_string(loopA) + "\n").c_str());
     }
     // Deallocate
-    delete [] asInlets;
-    delete [] asOutlets;
-    asInlets = NULL;
-    asOutlets = NULL;
+    delete[] asInlets;
+    delete[] asOutlets;
+    asInlets = nullptr;
+    asOutlets = nullptr;
   }
 
   // CREATE MATERIAL
   printf("Creating Materials ... \n");
-  int totMaterials = opts->materialName.size();
+  int totMaterials = opts.materialName.size();
   int matError = CV_OK;
   double doubleParams[3];
   int matID = 0;
   string currMatType = "MATERIAL_OLUFSEN";
   int numParams = 0;
-  for(int loopA=0;loopA<totMaterials;loopA++){
-    if(upper_string(opts->materialType[loopA]) == "OLUFSEN"){
+  for(int loopA = 0; loopA < totMaterials; loopA++) {
+    if(upper_string(opts.materialType[loopA]) == "OLUFSEN") {
       currMatType = "MATERIAL_OLUFSEN";
       numParams = 3;
-    }else{
+    } else {
       currMatType = "MATERIAL_LINEAR";
       numParams = 1;
     }
-    doubleParams[0] = opts->materialParam1[loopA];
-    doubleParams[1] = opts->materialParam2[loopA];
-    doubleParams[2] = opts->materialParam3[loopA];
+    doubleParams[0] = opts.materialParam1[loopA];
+    doubleParams[1] = opts.materialParam2[loopA];
+    doubleParams[2] = opts.materialParam3[loopA];
     // CREATE MATERIAL
-    matError = oned->CreateMaterial((char*)opts->materialName[loopA].c_str(),
+    matError = oned->CreateMaterial((char*)opts.materialName[loopA].c_str(),
                                     (char*)currMatType.c_str(),
-                                    opts->materialDensity[loopA],
-                                    opts->materialViscosity[loopA],
-                                    opts->materialExponent[loopA],
-                                    opts->materialPRef[loopA],
+                                    opts.materialDensity[loopA],
+                                    opts.materialViscosity[loopA],
+                                    opts.materialExponent[loopA],
+                                    opts.materialPRef[loopA],
                                     numParams, doubleParams,
                                     &matID);
-    if(matError == CV_ERROR){
+    if(matError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating MATERIAL " + to_string(loopA) + "\n").c_str());
     }
 
@@ -187,11 +192,11 @@ void createAndRunModel(cvOneDOptions* opts){
 
   // CREATE DATATABLES
   printf("Creating Data Tables ... \n");
-  int totCurves = opts->dataTableName.size();
+  int totCurves = opts.dataTableName.size();
   int curveError = CV_OK;
-  for(int loopA=0;loopA<totCurves;loopA++){
-    curveError = oned->CreateDataTable((char*)opts->dataTableName[loopA].c_str(),(char*)opts->dataTableType[loopA].c_str(),opts->dataTableVals[loopA]);
-    if(curveError == CV_ERROR){
+  for(int loopA = 0; loopA < totCurves; loopA++) {
+    curveError = oned->CreateDataTable((char*)opts.dataTableName[loopA].c_str(),(char*)opts.dataTableType[loopA].c_str(), opts.dataTableVals[loopA]);
+    if(curveError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating DATATABLE " + to_string(loopA) + "\n").c_str());
     }
   }
@@ -199,68 +204,68 @@ void createAndRunModel(cvOneDOptions* opts){
   // SEGMENT DATA
   printf("Creating Segments ... \n");
   int segmentError = CV_OK;
-  int totalSegments = opts->segmentName.size();
+  int totalSegments = opts.segmentName.size();
   int curveTotals = 0;
-  double* curveTime = NULL;
-  double* curveValue = NULL;
+  double* curveTime = nullptr;
+  double* curveValue = nullptr;
   string matName;
   string curveName;
   int currMatID = 0;
   int dtIDX = 0;
-  for(int loopA=0;loopA<totalSegments;loopA++){
+  for(int loopA = 0; loopA < totalSegments; loopA++) {
 
     // GET MATERIAL
-    matName = opts->segmentMatName[loopA];
-    currMatID = getListIDWithStringKey(matName,opts->materialName);
-    if(currMatID < 0){
+    matName = opts.segmentMatName[loopA];
+    currMatID = getListIDWithStringKey(matName, opts.materialName);
+    if(currMatID < 0) {
       throw cvException(string("ERROR: Cannot Find Material for key " + matName).c_str());
     }
 
     // GET CURVE DATA
-    curveName = opts->segmentDataTableName[loopA];
+    curveName = opts.segmentDataTableName[loopA];
 
     if(upper_string(curveName) != "NONE") {
       dtIDX = getDataTableIDFromStringKey(curveName);
       curveTotals = cvOneDGlobal::gDataTables[dtIDX]->getSize();
       curveTime = new double[curveTotals];
       curveValue = new double[curveTotals];
-      for(int loopA=0;loopA<curveTotals;loopA++){
+      for(int loopA = 0; loopA < curveTotals; loopA++) {
         curveTime[loopA] = cvOneDGlobal::gDataTables[dtIDX]->getTime(loopA);
         curveValue[loopA] = cvOneDGlobal::gDataTables[dtIDX]->getValues(loopA);
       }
-    }else{
+    } else {
       curveTotals = 1;
       curveTime = new double[curveTotals];
       curveValue = new double[curveTotals];
       curveTime[0] = 0.0;
       curveValue[0] = 0.0;
     }
-    segmentError = oned->CreateSegment((char*)opts->segmentName[loopA].c_str(),
-                                       (long)opts->segmentID[loopA],
-                                       opts->segmentLength[loopA],
-                                       (long)opts->segmentTotEls[loopA],
-                                       (long)opts->segmentInNode[loopA],
-                                       (long)opts->segmentOutNode[loopA],
-                                       opts->segmentInInletArea[loopA],
-                                       opts->segmentInOutletArea[loopA],
-                                       opts->segmentInFlow[loopA],
+    segmentError = oned->CreateSegment((char*)opts.segmentName[loopA].c_str(),
+                                       (long)opts.segmentID[loopA],
+                                       opts.segmentLength[loopA],
+                                       (long)opts.segmentTotEls[loopA],
+                                       (long)opts.segmentInNode[loopA],
+                                       (long)opts.segmentOutNode[loopA],
+                                       opts.segmentInInletArea[loopA],
+                                       opts.segmentInOutletArea[loopA],
+                                       opts.segmentInFlow[loopA],
                                        currMatID,
-                                       (char*)opts->segmentLossType[loopA].c_str(),
-                                       opts->segmentBranchAngle[loopA],
-                                       opts->segmentUpstreamSegment[loopA],
-                                       opts->segmentBranchSegment[loopA],
-                                       (char*)opts->segmentBoundType[loopA].c_str(),
+                                       (char*)opts.segmentLossType[loopA].c_str(),
+                                       opts.segmentBranchAngle[loopA],
+                                       opts.segmentUpstreamSegment[loopA],
+                                       opts.segmentBranchSegment[loopA],
+                                       (char*)opts.segmentBoundType[loopA].c_str(),
                                        curveValue,
                                        curveTime,
                                        curveTotals);
-    if(segmentError == CV_ERROR){
+    if(segmentError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating SEGMENT " + to_string(loopA) + "\n").c_str());
     }
     // Deallocate
-    delete [] curveTime;
-    curveTime = NULL;
-    delete [] curveValue;
-    curveValue = NULL;
+    delete[] curveTime;
+    curveTime = nullptr;
+    delete[] curveValue;
+    curveValue = nullptr;
   }
 
   double* vals;
@@ -269,57 +274,143 @@ void createAndRunModel(cvOneDOptions* opts){
   // SOLVE MODEL
   printf("Solving Model ... \n");
   int solveError = CV_OK;
-  string inletCurveName = opts->inletDataTableName;
+  string inletCurveName = opts.inletDataTableName;
   int inletCurveIDX = getDataTableIDFromStringKey(inletCurveName);
   int inletCurveTotals = cvOneDGlobal::gDataTables[inletCurveIDX]->getSize();
   double* inletCurveTime = new double[inletCurveTotals];
   double* inletCurveValue = new double[inletCurveTotals];
-  for(int loopB=0;loopB<inletCurveTotals;loopB++){
+  for(int loopB = 0; loopB < inletCurveTotals; loopB++) {
     inletCurveTime[loopB] = cvOneDGlobal::gDataTables[inletCurveIDX]->getTime(loopB);
     inletCurveValue[loopB] = cvOneDGlobal::gDataTables[inletCurveIDX]->getValues(loopB);
   }
   // Solve Model
-  solveError = oned->SolveModel(opts->timeStep,
-                                opts->stepSize,
-                                opts->maxStep,
-                                opts->quadPoints,
+  solveError = oned->SolveModel(opts.timeStep,
+                                opts.stepSize,
+                                opts.maxStep,
+                                opts.quadPoints,
                                 inletCurveTotals,
-                                (char*)opts->boundaryType.c_str(),
+                                (char*)opts.boundaryType.c_str(),
                                 inletCurveValue,
                                 inletCurveTime,
-                                opts->convergenceTolerance,
+                                opts.convergenceTolerance,
                                 // Formulation Type
-                                opts->useIV,
+                                opts.useIV,
                                 // Stabilization
-                                opts->useStab);
-  if(solveError == CV_ERROR){
+                                opts.useStab);
+  if(solveError == CV_ERROR) {
     throw cvException(string("ERROR: Error Solving Model\n").c_str());
   }
-  delete [] inletCurveTime;
-  delete [] inletCurveValue;
+  delete[] inletCurveTime;
+  delete[] inletCurveValue;
 }
 
 // ==============
 // RUN ONEDSOLVER
 // ==============
-void runOneDSolver(string inputFile){
-
-  // Create options from legacy format file
-  cvOneDOptions* opts = new cvOneDOptions();
-  cvOneD::readOptionsLegacyFormat(inputFile,opts);
+void runOneDSolver(const cvOneD::options& opts){
 
   // Model Checking
-  opts->check();
+  cvOneD::validateOptions(opts);
 
   // Print Input Data Echo
   string fileName("echo.out");
-  opts->printToFile(fileName);
+  cvOneD::printToLegacyFile(opts,fileName);
+
+  // For now, we'll just duplicate the printing of
+  // the echo of the options to JSON as well
+  string jsonFilename("echo.json");
+  cvOneD::writeJsonOptions(opts, jsonFilename);
 
   // Create Model and Run Simulation
   createAndRunModel(opts);
 
-  // Delete Options
-  delete opts;
+}
+
+void convertOptions(const std::string& legacyFilename, const std::string& jsonFilename){
+  // Convert legacy format to JSON and print it to file
+  cvOneD::options opts{};
+  cvOneD::readOptionsLegacyFormat(legacyFilename,&opts);
+
+  cvOneD::writeJsonOptions(opts, jsonFilename);
+
+  std::cout << "Converted legacy file " << legacyFilename <<
+               "to json file " << jsonFilename << std::endl;
+}
+
+struct ArgOptions{
+  std::optional<std::string> jsonInput = std::nullopt;
+
+  std::optional<std::string> legacyConversionInput = std::nullopt;
+  std::optional<std::string> jsonConversionOutput = std::nullopt;
+};
+
+ArgOptions parseInputArgs(int argc, char** argv) {
+    // Right now, we don't check for bad arguments but we could
+    // do that in here if we want more coherent behavior.
+    ArgOptions options; 
+
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+
+        if (arg == "-jsonInput" && i + 1 < argc) {
+            options.jsonInput = argv[i + 1];
+            i++;
+        }
+
+        if (arg == "-legacyToJson" && i + 2 < argc) {
+            options.legacyConversionInput = argv[i + 1];
+            options.jsonConversionOutput = argv[i + 2];
+            i++;
+        }
+
+    }
+
+    return options;
+}
+
+// Parse the incoming arguments and read the options file.
+// Also performs option file conversions if requested by user.
+//
+// Updated behavior: 
+//  parse input arg pairs as
+//    "-argName argValue -anotherArg anotherValue"
+//  Current options:
+//    * Run simulation with JSON input file:
+//       -jsonInput inputFilename
+//    * Convert legacy input to JSON input:
+//       -legacyToJson legacyInput.in jsonInput.json
+//
+// Preserved legacy behavior: 
+//   Single input that is a legacy input file, e.g.:
+//     ./svOneDSolver inputFilename.in
+//
+// Legacy behavior is used only if exactly one input is provided. 
+//
+std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
+  
+  // Legacy behavior
+  if(argc == 2){
+    string inputFile(argv[1]);
+    cvOneD::options opts{};
+    cvOneD::readOptionsLegacyFormat(inputFile,&opts);
+    return opts;
+  }
+
+  // Default behavior
+  auto const argOptions = parseInputArgs(argc,argv);
+
+  // Conversion
+  if(argOptions.legacyConversionInput && argOptions.jsonConversionOutput){
+    convertOptions(*argOptions.legacyConversionInput, 
+                   *argOptions.jsonConversionOutput);
+  }
+
+  // Only return the input args if the user provided them
+  if(argOptions.jsonInput){
+    return cvOneD::readJsonOptions(*argOptions.jsonInput);
+  }
+
+  return std::nullopt;
 }
 
 // =============
@@ -332,9 +423,17 @@ int main(int argc, char** argv){
 
   try{
 
-    // Run Simulation
-    string inputFile(argv[1]);
-    runOneDSolver(inputFile);
+    auto const simulationOptions = parseArgsAndHandleOptions(argc,argv);
+    if(simulationOptions){
+      // The simulation options were defined so we can run the simulation
+      runOneDSolver(*simulationOptions);
+    } else{
+      // The user could just want to convert legacy input *.in -> *.json 
+      // so we don't error but we notify the user that no simulation
+      // is run.
+      std::cout << "The simulation was not run because" 
+                   " no input file was provided." << std::endl;
+    }
 
   }catch(exception& e){
     // Print Exception Message

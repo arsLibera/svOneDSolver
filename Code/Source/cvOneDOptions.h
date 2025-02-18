@@ -32,43 +32,47 @@
 #ifndef CVONEDOPTIONS_H
 #define CVONEDOPTIONS_H
 
-# include <string>
-# include <math.h>
-# include "cvOneDTypes.h"
-# include "cvOneDException.h"
+#include <string>
+#include <math.h>
+#include <memory>
+#include "cvOneDTypes.h"
+#include "cvOneDException.h"
 
 using namespace std;
 
-class cvOneDOptions{
-  public:
-    // CONSTRUCTOR
-    cvOneDOptions();
-    // DESTRUCTOR
-    ~cvOneDOptions();
+namespace cvOneD{
+
+struct options{
 
     // DATA
     string modelName;
-    bool modelNameDefined;
 
     // NODE DATA
     cvStringVec nodeName;
+    // Note that these coordinates are also used
+    // for the joints through an implicit mapping
     cvDoubleVec nodeXcoord;
     cvDoubleVec nodeYcoord;
     cvDoubleVec nodeZcoord;
 
     // JOINT DATA
     cvStringVec jointName;
-    cvStringVec jointNode;
-    cvDoubleVec jointXcoord;
-    cvDoubleVec jointYcoord;
-    cvDoubleVec jointZcoord;
+    
+    // "jointNode" isn't used currently -- but we want
+    // to start integrating it. It can be used to make
+    // the mapping from joint->node explicit. Right
+    // now, the mapping is implicit: each joint is 
+    // associated with the node of the same index in
+    // the list of nodes.
+    cvStringVec jointNode; 
+
     cvStringVec jointInletName;
     cvStringVec jointOutletName;
 
-    // JOINT INLET AND OUTLET LIST
     cvStringVec jointInletListNames;
     cvLongVec   jointInletListNumber;
     cvLongMat   jointInletList;
+
     cvStringVec jointOutletListNames;
     cvLongVec   jointOutletListNumber;
     cvLongMat   jointOutletList;
@@ -118,26 +122,11 @@ class cvOneDOptions{
     int    useIV;
     int    useStab;
     string outputType;
-    bool solverOptionDefined;
-
-    // PRINTING
-    void printToFile(string fileName);
-    void printModelName(FILE* f);
-    void printNodeData(FILE* f);
-    void printJointData(FILE* f);
-    void printSegmentData(FILE* f);
-    void printSolverOptions(FILE* f);
-    void printMaterialData(FILE* f);
-    void printJointInletData(FILE* f);
-    void printJointOutletData(FILE* f);
-    void printDataTables(FILE* f);
-
-    // CHECKING
-    void check();
-    void checkSegmentLengthConsistency();
-    void checkSegmentHasNodes();
-    void checkJointHasNodes();
 };
+
+void validateOptions(options const& opts);
+
+} // namespace cvOneD
 
 #endif // CVONEDOPTIONS_H
 

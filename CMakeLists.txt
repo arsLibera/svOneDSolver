@@ -111,6 +111,16 @@ if (BUILD_SV_INSTALLER)
     add_subdirectory("${CMAKE_SOURCE_DIR}/Distribution")
 ENDIF()
 
+# NLOHMANN JSON FOR SERIALIZATION
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2  # You can specify a version or use the latest tag
+)
+FetchContent_MakeAvailable(nlohmann_json)
+target_include_directories(${PROJECT_NAME} PUBLIC ${nlohmann_json_SOURCE_DIR}/single_include)
+
 # Unit tests and Google Test
 if(ENABLE_UNIT_TEST)
 
@@ -163,6 +173,13 @@ if(ENABLE_UNIT_TEST)
   # changing the strategy for how we generate executables in cmakelists to
   # handle both use cases.
   target_link_libraries(UnitTestsExecutable gtest gtest_main pthread)
+
+  # We need to include Nlohmann when compiling the unit test executable
+  # A better strategy would be to build up a list of what we're going to
+  # include and reuse it.
+  # Another option: we could simply build the library of cvOneD functionality
+  # and link against that both here and in the main executable.  
+  target_include_directories(UnitTestsExecutable PRIVATE ${nlohmann_json_SOURCE_DIR}/single_include)
 
   # It's likely we'll need to include additional directories for some
   # versions of the unit tests. That can be updated when/if we update

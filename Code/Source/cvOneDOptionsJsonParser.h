@@ -1,3 +1,4 @@
+
 /* Copyright (c) Stanford University, The Regents of the University of
  *               California, and others.
  *
@@ -29,8 +30,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CVONEDOPTIONSLEGACYSERIALIZER_H
-#define CVONEDOPTIONSLEGACYSERIALIZER_H
+#ifndef CVONEDOPTIONSJSONPARSER_H
+#define CVONEDOPTIONSJSONPARSER_H
 
 #include "cvOneDOptions.h"
 
@@ -38,11 +39,11 @@ using namespace std;
 
 namespace cvOneD{
 
-void readOptionsLegacyFormat(string inputFile, options* opts);
-
-void printToLegacyFile(options const& opts, string const& fileName);
+options readJsonOptions(string const& inputFile);
 
 } // namespace cvOneD
 
-#endif // CVONEDOPTIONSLEGACYSERIALIZER_H
+#endif // CVONEDOPTIONSJSONPARSER_H
+
+
 

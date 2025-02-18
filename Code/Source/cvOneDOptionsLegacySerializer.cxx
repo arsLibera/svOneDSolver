@@ -43,7 +43,7 @@ namespace cvOneD{
 // ======================
 // READ SINGLE MODEL FILE
 // ======================
-void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
+void readOptionsLegacyFormat(string inputFile, options* opts){
 
   // Message
   printf("\n");
@@ -54,7 +54,9 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
   cvLongVec   tempIntVec;
   string      matType;
   cvDoubleVec temp;
-  bool doInclude = false;
+  
+  bool solverOptionsDefined = false;
+  bool modelNameDefined = false;
 
   // Declare input File
   ifstream infile;
@@ -84,7 +86,7 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
       // CHECK THE ELEMENT TYPE
       if(upper_string(tokenizedString[0]) == "MODEL"){
         //printf("Found Model.\n");
-        if(opts->modelNameDefined){
+        if(modelNameDefined){
           throw cvException("ERROR: Model name already defined\n");
         }
         if(tokenizedString.size() > 2){
@@ -97,7 +99,7 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
         }catch(...){
           throw cvException(string("ERROR: Invalid Model Name. Line " + to_string(lineCount) + "\n").c_str());
         }
-        opts->modelNameDefined = true;
+        modelNameDefined = true;
       }else if(upper_string(tokenizedString[0]) == "NODE"){
         // printf("Found Joint.\n");
         if(tokenizedString.size() > 5){
@@ -219,7 +221,7 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
         }
       }else if(upper_string(tokenizedString[0]) == "SOLVEROPTIONS"){
         // printf("Found Solver Options.\n");
-        if(opts->solverOptionDefined){
+        if(solverOptionsDefined){
           throw cvException("ERROR: SOLVEROPTIONS already defined\n");
         }
         if(tokenizedString.size() > 10){
@@ -249,7 +251,7 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
         }catch(...){
           throw cvException(string("ERROR: Invalid SOLVEROPTIONS Format. Line " + to_string(lineCount) + "\n").c_str());
         }
-        opts->solverOptionDefined = true;
+        solverOptionsDefined = true;
       }else if(upper_string(tokenizedString[0]) == std::string("OUTPUT")){
         if(tokenizedString.size() > 3){
           throw cvException(string("ERROR: Too many parameters for OUTPUT token. Line " + to_string(lineCount) + "\n").c_str());
@@ -361,6 +363,197 @@ void readOptionsLegacyFormat(string inputFile, cvOneDOptions* opts){
   }
   // Close File
   infile.close();
+}
+
+namespace{
+
+// PRINT MODEL NAME
+void printModelName(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"MODEL NAME: %s\n",opts.modelName.c_str());
+}
+
+// PRINT NODE DATA
+void printNodeData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"NODE DATA\n");
+  for(long int loopA=0;loopA<opts.nodeName.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"NODE: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.nodeName[loopA].c_str());
+    fprintf(f,"X: %f\n",opts.nodeXcoord[loopA]);
+    fprintf(f,"Y: %f\n",opts.nodeYcoord[loopA]);
+    fprintf(f,"Z: %f\n",opts.nodeZcoord[loopA]);
+  }
+}
+
+// PRINT JOINT DATA
+void printJointData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"JOINT DATA\n");
+  for(long int loopA=0;loopA<opts.jointName.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"JOINT: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.jointName[loopA].c_str());
+    fprintf(f,"NODE: %s\n",opts.jointNode[loopA].c_str());
+    fprintf(f,"X: %f\n",opts.nodeXcoord[loopA]);
+    fprintf(f,"Y: %f\n",opts.nodeYcoord[loopA]);
+    fprintf(f,"Z: %f\n",opts.nodeZcoord[loopA]);
+    fprintf(f,"INLET NAME: %s\n",opts.jointInletName[loopA].c_str());
+    fprintf(f,"OUTLET NAME: %s\n",opts.jointOutletName[loopA].c_str());
+  }
+}
+
+// PRINT SEGMEMENT DATA
+void printSegmentData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"SEGMENT DATA\n");
+  for(long int loopA=0;loopA<opts.segmentName.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"SEGMENT N.: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.segmentName[loopA].c_str());
+    fprintf(f,"ID: %ld\n",opts.segmentID[loopA]);
+    fprintf(f,"LENGTH: %f\n",opts.segmentLength[loopA]);
+    fprintf(f,"NUM ELEMENTS: %ld\n",opts.segmentTotEls[loopA]);
+    fprintf(f,"IN NODE: %ld\n",opts.segmentInNode[loopA]);
+    fprintf(f,"OUT NODE: %ld\n",opts.segmentOutNode[loopA]);
+    fprintf(f,"IN AREA: %f\n",opts.segmentInInletArea[loopA]);
+    fprintf(f,"OUT AREA: %f\n",opts.segmentInOutletArea[loopA]);
+    fprintf(f,"IN FLOW: %f\n",opts.segmentInFlow[loopA]); //Take out
+    fprintf(f,"MAT DATATABLE NAME: %s\n",opts.segmentMatName[loopA].c_str());
+    fprintf(f,"LOSS TYPE: %s\n",opts.segmentLossType[loopA].c_str()); //take out
+    fprintf(f,"BRANCH ANGLE: %f\n",opts.segmentBranchAngle[loopA]); //take out
+    fprintf(f,"UPSTREAM SEGMENT: %ld\n",opts.segmentUpstreamSegment[loopA]); //take out
+    fprintf(f,"BRANCH SEGMENT: %ld\n",opts.segmentBranchSegment[loopA]); //take out
+    fprintf(f,"BOUNDARY CONDITIONS TYPE: %s\n",opts.segmentBoundType[loopA].c_str());
+    fprintf(f,"INLET DATA TABLE: %s\n",opts.segmentDataTableName[loopA].c_str());
+  }
+}
+
+// PRINT SOLVER OPTION DATA
+void printSolverOptions(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"PRINT SOLVER OPTION DATA\n");
+  fprintf(f,"TIME STEP: %f\n",opts.timeStep);
+  fprintf(f,"STEP SIZE: %ld\n",opts.stepSize);
+  fprintf(f,"MAX STEP: %ld\n",opts.maxStep);
+  fprintf(f,"QUADRATURE POINTS: %ld\n",opts.quadPoints);
+  fprintf(f,"INLET DATA TABLE: %s\n",opts.inletDataTableName.c_str());
+  fprintf(f,"BOUNDARY TYPE: %s\n",opts.boundaryType.c_str());
+  fprintf(f,"CONVERGENCE TOLERANCE: %f\n",opts.convergenceTolerance);
+  fprintf(f,"USE IV: %d\n",opts.useIV);
+  fprintf(f,"USE STABILIZATION: %d\n",opts.useStab);
+}
+
+// PRINT MATERIAL DATA
+void printMaterialData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  // MATERIAL
+  for(long int loopA=0;loopA<opts.materialName.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"MATERIAL NUM: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.materialName[loopA].c_str());
+    fprintf(f,"TYPE: %s\n",opts.materialType[loopA].c_str());
+    fprintf(f,"DENSITY: %f\n",opts.materialDensity[loopA]);
+    fprintf(f,"VISCOSITY: %f\n",opts.materialViscosity[loopA]);
+    fprintf(f,"REF PRESSURE: %f\n",opts.materialPRef[loopA]);
+    fprintf(f,"EXPONENT: %f\n",opts.materialExponent[loopA]);
+    fprintf(f,"PARAM 1: %f\n",opts.materialParam1[loopA]);
+    fprintf(f,"PARAM 2: %f\n",opts.materialParam2[loopA]);
+    fprintf(f,"PARAM 3: %f\n",opts.materialParam3[loopA]);
+  }
+}
+
+// PRINT JOINTINLET DATA
+void printJointInletData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"JOINTINLET DATA\n");
+  for(long int loopA=0;loopA<opts.jointInletListNames.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"JOINTINLET NUM: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.jointInletListNames[loopA].c_str());
+    fprintf(f,"TOTAL : %ld\n",opts.jointInletListNumber[loopA]);
+    if(opts.jointInletListNumber[loopA] > 0){
+      fprintf(f,"LIST ITEMS\n");
+      for(size_t loopB=0;loopB<opts.jointInletList[loopA].size();loopB++){
+        fprintf(f,"%ld \n",opts.jointInletList[loopA][loopB]);
+      }
+    }
+    fprintf(f,"\n");
+  }
+}
+
+// PRINT JOINTOPUTLET DATA
+void printJointOutletData(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"JOINTOUTLET DATA\n");
+  for(long int loopA=0;loopA<opts.jointOutletListNames.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"JOINTOUTLET NUM: %ld\n",loopA);
+    fprintf(f,"NAME: %s\n",opts.jointOutletListNames[loopA].c_str());
+    fprintf(f,"TOTAL : %ld\n",opts.jointOutletListNumber[loopA]);
+    if(opts.jointOutletListNumber[loopA] > 0){
+      fprintf(f,"LIST ITEMS\n");
+      for(size_t loopB=0;loopB<opts.jointOutletList[loopA].size();loopB++){
+        fprintf(f,"%ld \n",opts.jointOutletList[loopA][loopB]);
+      }
+    }
+    fprintf(f,"\n");
+  }
+}
+
+// PRINT DATA TABLES
+void printDataTables(options const& opts,FILE* f){
+  fprintf(f,"--- \n");
+  fprintf(f,"DATA TABLES\n");
+  for(long int loopA=0;loopA<opts.dataTableName.size();loopA++){
+    fprintf(f,"--- \n");
+    fprintf(f,"DATA TABLE ID: %ld\n",loopA);
+    fprintf(f,"DATA TABLE NAME: %s\n",opts.dataTableName[loopA].c_str());
+    fprintf(f,"DATA TABLE TYPE: %s\n",opts.dataTableType[loopA].c_str());
+    for(size_t loopB=0;loopB<opts.dataTableVals[loopA].size();loopB++){
+      fprintf(f,"VALUE n. %ld: %f\n",loopB+1,opts.dataTableVals[loopA][loopB]);
+    }
+  }
+}
+
+} // namespace
+
+void printToLegacyFile(options const& opts, string const& fileName){
+  FILE* f;
+  f = fopen(fileName.c_str(),"w");
+
+  printf("\n");
+  printf("Printing Model Echo ... \n");
+  fflush(stdout);
+  printModelName(opts,f);
+  //printf("1 ... ");
+  //fflush(stdout);
+  printNodeData(opts,f);
+  //printf("1 ... ");
+  //fflush(stdout);
+  printJointData(opts,f);
+  //printf("2... ");
+  //fflush(stdout);
+  printSegmentData(opts,f);
+  //printf("3 ... ");
+  //fflush(stdout);
+  printSolverOptions(opts,f);
+  //printf("4 ... ");
+  //fflush(stdout);
+  printMaterialData(opts,f);
+  //printf("5 ... ");
+  //fflush(stdout);
+  printJointInletData(opts,f);
+  //printf("6 ... ");
+  //fflush(stdout);
+  printJointOutletData(opts,f);
+  //printf("7 ... ");
+  //fflush(stdout);
+  printDataTables(opts,f);
+  //printf("8 ... ");
+  //fflush(f);
+  fclose(f);
 }
 
 } // namespace cvOneD
