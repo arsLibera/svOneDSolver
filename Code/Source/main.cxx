@@ -331,6 +331,32 @@ void createAndRunModel(const cvOneD::options& opts) {
 // ==============
 // RUN ONEDSOLVER
 // ==============
+
+namespace {
+
+void setOutputGlobals(const cvOneD::options& opts){  
+
+  if(upper_string(opts.outputType) == "TEXT"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_TEXT;
+  }else if(upper_string(opts.outputType) == "VTK"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_VTK;
+  }else if(upper_string(opts.outputType) == "BOTH"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_BOTH;
+  }else{
+    throw cvException("ERROR: Invalid OUTPUT Type.\n");
+  }
+
+  if(opts.vtkOutputType){
+    cvOneDGlobal::vtkOutputType = *opts.vtkOutputType;
+    if(cvOneDGlobal::vtkOutputType > 1){
+      throw cvException("ERROR: Invalid OUTPUT VTK Type.\n");
+    }
+  }
+  
+}
+
+} // namespace
+
 void runOneDSolver(const cvOneD::options& opts){
 
   // Model Checking
@@ -344,6 +370,14 @@ void runOneDSolver(const cvOneD::options& opts){
   // the echo of the options to JSON as well
   string jsonFilename("echo.json");
   cvOneD::writeJsonOptions(opts, jsonFilename);
+
+  // Per the existing behavior, we'll set output globals 
+  // from the options. TODO: we should really just
+  // consume option data from the options rather
+  // than setting it in a global variable. Besides that,
+  // we should move the VTK options to a postprocessor
+  // rather than have them in the solver options.
+  setOutputGlobals(opts);
 
   // Create Model and Run Simulation
   createAndRunModel(opts);

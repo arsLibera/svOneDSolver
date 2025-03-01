@@ -206,8 +206,13 @@ void parseSolverOptions(const nlohmann::ordered_json& jsonData, options& opts) t
     opts.useIV = solverOptions.at("useIV").get<int>();
     opts.useStab = solverOptions.at("useStab").get<int>();
 
-    // Doesn't seem like this is used...but we'll provide a default anyway
-    opts.outputType = solverOptions.value("outputType", "None");    
+    // Until this is migrated elsewhere, we'll (optionally) store the solver options.
+    if(solverOptions.contains("outputType")){
+        opts.outputType = solverOptions.at("outputType").get<std::string>();    
+    }
+    if(solverOptions.contains("vtkOutputType")){
+        opts.vtkOutputType = solverOptions.at("vtkOutputType").get<int>();    
+    }
 
 } catch (const std::exception& e) {
     throw std::runtime_error("Error parsing 'solverOptions': " + std::string(e.what()));

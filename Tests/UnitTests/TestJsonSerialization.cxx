@@ -81,7 +81,8 @@ cvOneD::options test_input_options(){
     opts.convergenceTolerance = 1.0e-6;
     opts.useIV = 1;
     opts.useStab = 0;
-    opts.outputType = "NONE";
+    opts.outputType = "SOME OUTPUT TYPE";
+    opts.vtkOutputType = 23;
 
     return opts;
 }
