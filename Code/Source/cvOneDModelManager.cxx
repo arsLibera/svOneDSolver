@@ -188,7 +188,7 @@ int cvOneDModelManager::CreateNode(char * nodeName,double x,double y,double z){
 }
 
 
-int cvOneDModelManager::CreateJoint(char * jointName,double x,double y,double z,
+int cvOneDModelManager::CreateJoint(const char * jointName,double x,double y,double z,
                                     int numInSegs,int numOutSegs,
                                     int *InSegs,int *OutSegs){
 

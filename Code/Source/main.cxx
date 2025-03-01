@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <optional>
+#include <algorithm>
 
 #include "cvOneDGlobal.h"
 #include "cvOneDModelManager.h"
@@ -75,6 +76,23 @@ int getDataTableIDFromStringKey(string key){
 // ===============================
 // CREATE MODEL AND RUN SIMULATION
 // ===============================
+namespace{
+
+size_t findJointNodeIndexOrThrow(const auto& jointNodeName, const auto& nodeNames, const auto& jointName){
+  // Return the index of "nodeNames" that corresponds to the "jointNodeName"
+  // or throw a context-specific error.
+
+  auto const iter = std::find(nodeNames.begin(), nodeNames.end(), jointNodeName);
+  if (iter == nodeNames.end()) {
+    std::string const errMsg = "ERROR: The node '" + jointNodeName + "' required by joint '" 
+      + jointName + "' was not found in the list of nodes.";
+    throw cvException(errMsg.c_str());
+  }
+  return std::distance(nodeNames.begin(), iter); 
+}
+
+} // namespace
+
 void createAndRunModel(const cvOneD::options& opts) {
 
   // MESSAGE
@@ -142,9 +160,15 @@ void createAndRunModel(const cvOneD::options& opts) {
         asOutlets[loopB] = opts.jointOutletList[jointOutletID][loopB];
       }
     }
+
+    // Find the index of the indicated node.
+    auto const jointName = opts.jointName.at(loopA);
+    auto const nodeIndex = findJointNodeIndexOrThrow( 
+      opts.jointNode.at(loopA), opts.nodeName, jointName);
+
     // Finally Create Joint
-    jointError = oned->CreateJoint((char*)opts.jointName[loopA].c_str(),
-                                   opts.nodeXcoord[loopA], opts.nodeYcoord[loopA], opts.nodeZcoord[loopA],
+    jointError = oned->CreateJoint(jointName.c_str(),
+                                   opts.nodeXcoord[nodeIndex], opts.nodeYcoord[nodeIndex], opts.nodeZcoord[nodeIndex],
                                    totJointInlets, totJointOutlets, asInlets, asOutlets);
     if(jointError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating JOINT " + to_string(loopA) + "\n").c_str());

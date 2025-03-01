@@ -99,7 +99,13 @@ cvOneD::options bifurcationOptions() {
 
     // JOINT DATA
     options.jointName = {"JOINT1"};
-    options.jointNode = {"1"};  
+
+    // The joint node *DOES NOT* match the joint node
+    // defined in the file.
+    //
+    // This is, sadly, intentional. For details, see
+    // the comments in the legacy deserialization function.
+    options.jointNode = {"0"}; 
   
     // Inlet and Outlet Connections for the Joint
     options.jointInletName = {"INSEGS"}; 

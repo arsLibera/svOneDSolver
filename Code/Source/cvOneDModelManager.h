@@ -69,7 +69,7 @@ class cvOneDModelManager{
 
 
     // CREATE JOINT
-    int CreateJoint(char* jointName,double x,double y,double z,
+    int CreateJoint(const char* jointName,double x,double y,double z,
                     int numInSegs,int numOutSegs,
                     int *InSegs,int *OutSegs);
 
