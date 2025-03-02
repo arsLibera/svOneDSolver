@@ -99,13 +99,8 @@ IF(buildDocs)
   ADD_SUBDIRECTORY(${DOCS_DIR})
 ENDIF()
 
-
 # INSTALL PYTHON INTERFACE
 IF(buildPy)
-
-  find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
-
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Code/Source)
 
   # SWIG INTERFACE FILES
   FILE(GLOB ONED_SRC_I "${CMAKE_CURRENT_SOURCE_DIR}/Code/Source/oneDSolver.i")

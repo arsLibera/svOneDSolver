@@ -402,6 +402,14 @@ struct ArgOptions{
   std::optional<std::string> jsonConversionOutput = std::nullopt;
 };
 
+std::string removeQuotesIfPresent(const std::string& str) {
+    std::string result = str;
+    if (result.front() == '"' && result.back() == '"') {
+        result = result.substr(1, result.length() - 2); 
+    }
+    return result;
+}
+
 ArgOptions parseInputArgs(int argc, char** argv) {
     // Right now, we don't check for bad arguments but we could
     // do that in here if we want more coherent behavior.
@@ -411,13 +419,13 @@ ArgOptions parseInputArgs(int argc, char** argv) {
         std::string arg = argv[i];
 
         if (arg == "-jsonInput" && i + 1 < argc) {
-            options.jsonInput = argv[i + 1];
+            options.jsonInput = removeQuotesIfPresent(argv[i + 1]);
             i++;
         }
 
         if (arg == "-legacyToJson" && i + 2 < argc) {
-            options.legacyConversionInput = argv[i + 1];
-            options.jsonConversionOutput = argv[i + 2];
+            options.legacyConversionInput = removeQuotesIfPresent(argv[i + 1]);
+            options.jsonConversionOutput = removeQuotesIfPresent(argv[i + 2]);
             i++;
         }
 
@@ -454,7 +462,7 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
   
   // Legacy behavior
   if(argc == 2){
-    string inputFile(argv[1]);
+    string inputFile{removeQuotesIfPresent(argv[1])};
     return readLegacyOptions(inputFile);
   }
 
