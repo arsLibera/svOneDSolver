@@ -7,50 +7,10 @@ Some of the main contributors are I. Vignon-Clementel, N. Wilson, J. Wan, B. Ste
 
 The one-dimensional equations for the flow of a Newtonian, incompressible fluid in a deforming, elastic domain consist of the continuity equation, a single axial momentum balance equation, a constitutive equation, and suitable initial and boundary conditions. 
 
-## Installation
-
-### Prerequisites
-
-The following software is required:
-
-- Sphinx  (HTML Manual)
-- SWIG Interface generator (Python Interface)
-- MPI (mpi4py is used for running parameteric simulations from python)
-- SuperLU_MT (if you would like to use this sparse solver)
-
-### Generate makefiles with CMake
-
-Out-of-source is the suggested build modality. To do this, first create a build folder (for example "OneDBin") as a sibling of the main source code folder (probably "svOneDSolver")
-
-~~~
-mkdir svOneDSolver_build
-~~~
-
-Change directory into svOneDSolver_build
-
-~~~
-cd svOneDSolver_build
-~~~
-
-Now you can use the ccmake (command line) or cmake-gui (Qt-based CMake GUI) to create the make files.
-For example, using ccmake from the OneDBin folder type
-
-~~~
-ccmake ../svOneDSolver
-~~~
-
-Configure the code until CMake will let you generate the makefiles. Press "g" (ccmake) to generate the makefiles. See below for options
-
-To build the code run (within "OneDBin")
-
-~~~
-make -j n
-~~~
-
-where n is the number of processors you want to use to build. 
+## Usage
+Usage assumes that you have built from the source as described below.
 
 ### Basic usage
-
 There are three supported usages for the generated executable. 
 * The quotations around the input args are optional
 * Input file paths can be specified as a local file name or an absolute path
@@ -73,9 +33,7 @@ Run the simulation using a JSON input file
 svOneDSolver -jsonInput "<jsonInputFile>.json"
 ~~~
 
-
-### Run tests
-
+### Manually run tests
 System and unit tests can be run using ctest and pytest commands. 
 
 The following assume:
@@ -124,6 +82,47 @@ pytest Tests/SystemTests --relativeExePath="../svOneDSolver_build/bin/OneDSolver
 ```
 </details>
 
+## Installation
+
+### Prerequisites
+
+The following software is required:
+
+- Sphinx  (HTML Manual)
+- SWIG Interface generator (Python Interface)
+- MPI (mpi4py is used for running parameteric simulations from python)
+- SuperLU_MT (if you would like to use this sparse solver)
+
+### Generate makefiles with CMake
+
+Out-of-source is the suggested build modality. To do this, first create a build folder (for example "OneDBin") as a sibling of the main source code folder (probably "svOneDSolver")
+
+~~~
+mkdir svOneDSolver_build
+~~~
+
+Change directory into svOneDSolver_build
+
+~~~
+cd svOneDSolver_build
+~~~
+
+Now you can use the ccmake (command line) or cmake-gui (Qt-based CMake GUI) to create the make files.
+For example, using ccmake from the OneDBin folder type
+
+~~~
+ccmake ../svOneDSolver
+~~~
+
+Configure the code until CMake will let you generate the makefiles. Press "g" (ccmake) to generate the makefiles. See below for options
+
+To build the code run (within "OneDBin")
+
+~~~
+make -j n
+~~~
+
+where n is the number of processors you want to use to build. 
 
 ### CMake Options
 
