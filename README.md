@@ -108,15 +108,15 @@ If the binary is in a different location, specify the correct location.
     This offers some details for how to set up a python environment and install the relevant packages on linux, and then run the tests in parallel. Note that depending on the OS this setup process will vary, but the basic steps will remain the same.
 
     Navigate to the source folder, and run the following:
-<pre><code>sudo apt install python3-venv
+```sudo apt install python3-venv
 python3 -m venv venv
 source venv/bin/activate
 pip install numpy pytest-xdist
-</code></pre>
+```
 
-    With xdist available, run the tests in parallel (`-n <number of cores>`).
-<pre><code>pytest Tests/SystemTests --relativeExePath="../svOneDSolver_build/bin/OneDSolver" -n 6
-</code></pre>
+    With `xdist` available, run the tests in parallel (`-n <number of cores>`).
+```pytest Tests/SystemTests --relativeExePath="../svOneDSolver_build/bin/OneDSolver" -n 6
+```
 
 </details>
 
