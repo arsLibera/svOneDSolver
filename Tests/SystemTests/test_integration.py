@@ -5,18 +5,25 @@ import os
 import re
 import subprocess
 import numpy as np
+import pytest
 from collections import defaultdict
 
+@pytest.fixture(scope="session")
+def exePath(pytestconfig):
+    relativePath = pytestconfig.getoption("relativeExePath")
 
-def run_test_case_by_name(name, testdir):
+    assert relativePath, "--relativeExePath is required. Please " \
+                         "provide the (relative) path to the executable."
+
+    return os.path.abspath(relativePath)
+
+def run_test_case_by_name(name, testdir, exePath):
     """Run a test case by its case name.
 
     Args:
         name: Name of the test case.
         testdir: Directory for performing the simulation.
     """
-    # file where executable has been built
-    build_dir = 'build_skyline'
 
     # test file
     testfile = os.path.join(os.path.dirname(__file__), 'cases', name + '.in')
@@ -26,25 +33,25 @@ def run_test_case_by_name(name, testdir):
     shutil.copyfile(testfile, testfile_tmp)
 
     # run 1D simulation
-    run_oned(build_dir, testfile_tmp)
+    run_oned(testfile_tmp, testdir, exePath)
 
     # extract results
-    return read_results_1d('.', 'results_' + name + '_seg*')
+    return read_results_1d(testdir, 'results_' + name + '_seg*')
 
 
-def run_oned(build_dir, name):
+def run_oned(name, testdir, exePath):
     """
     Executes svOneDSolver with given input file
     """
-    # name of svOneDSolver executable
-    exe = os.path.join(build_dir, 'bin', 'OneDSolver')
 
-    # name of input file
-    inp = os.path.join('cases', name)
+    # Absolute path of the input file
+    inp = os.path.join(testdir, name)
 
-    # run simulation
+    # Run simulation in the testdir to keep the current directory clean. 
+    # Because we are in a temporary directory, we have to pass the
+    # locations as absolute paths.
     try:
-        subprocess.check_output([exe, inp])
+        subprocess.check_output([exePath, inp], cwd=testdir)
     except subprocess.CalledProcessError as err:
         raise RuntimeError('Test failed. svOneDSolver returned error:\n' + err.output.decode("utf-8"))
 
@@ -94,73 +101,72 @@ def get_result(results, field, seg, node, time, fun):
     else:
         raise ValueError('Unknown result type ' + fun)
 
-
-def test_tube_pressure(tmpdir):
-    results = run_test_case_by_name('tube_pressure', tmpdir)
+def test_tube_pressure(tmpdir, exePath):
+    results = run_test_case_by_name('tube_pressure', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 11005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 10000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_pressure_wave(tmpdir):
-    results = run_test_case_by_name('tube_pressure_wave', tmpdir)
+def test_tube_pressure_wave(tmpdir, exePath):
+    results = run_test_case_by_name('tube_pressure_wave', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 10000.0 , rtol=1.0e-8)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 9086.52306835, rtol=1.0e-4)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 90.8652306835, rtol=1.0e-4)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_rcr(tmpdir):
-    results = run_test_case_by_name('tube_rcr', tmpdir)
+def test_tube_rcr(tmpdir, exePath):
+    results = run_test_case_by_name('tube_rcr', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 11005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 10000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_rcr_Pd(tmpdir):
-    results = run_test_case_by_name('tube_rcr_Pd', tmpdir)
+def test_tube_rcr_Pd(tmpdir, exePath):
+    results = run_test_case_by_name('tube_rcr_Pd', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 12005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 11000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_r(tmpdir):
-    results = run_test_case_by_name('tube_r', tmpdir)
+def test_tube_r(tmpdir, exePath):
+    results = run_test_case_by_name('tube_r', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 11005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 10000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_r_Pd(tmpdir):
-    results = run_test_case_by_name('tube_r_Pd', tmpdir)
+def test_tube_r_Pd(tmpdir, exePath):
+    results = run_test_case_by_name('tube_r_Pd', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 12005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 11000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_r_stab(tmpdir):
-    results = run_test_case_by_name('tube_r_stab', tmpdir)
+def test_tube_r_stab(tmpdir, exePath):
+    results = run_test_case_by_name('tube_r_stab', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 11005.30965, rtol=1.0e-7)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 10000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-16)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 1.0, rtol=1.0e-5)
 
 
-def test_tube_stenosis_r(tmpdir):
-    results = run_test_case_by_name('tube_stenosis_r', tmpdir)
+def test_tube_stenosis_r(tmpdir, exePath):
+    results = run_test_case_by_name('tube_stenosis_r', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 10150.68211, rtol=1.0e-6)
     assert np.isclose(get_result(results, 'pressure', 2, -1, -1, 'point'), 10000.0, rtol=1.0e-8)
     assert np.isclose(get_result(results, 'flow', 0, -1, -1, 'point'), 100.0, rtol=1.0e-10)
     assert np.isclose(get_result(results, 'area', 0, -1, -1, 'point'), 10.0, rtol=1.0e-4)
 
 
-def test_bifurcation_P(tmpdir):
-    results = run_test_case_by_name('bifurcation_P', tmpdir)
+def test_bifurcation_P(tmpdir, exePath):
+    results = run_test_case_by_name('bifurcation_P', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 4039.45953118937, rtol=1e-5)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 4026.67220709878, rtol=1e-5)
     assert np.isclose(get_result(results, 'pressure', 1, 0, -1, 'point'), 4026.67220709878, rtol=1e-5)
@@ -171,8 +177,8 @@ def test_bifurcation_P(tmpdir):
     assert np.isclose(get_result(results, 'flow', 2, -1, -1, 'point'), 3.9925, rtol=1e-6)
 
 
-def test_bifurcation_R(tmpdir):
-    results = run_test_case_by_name('bifurcation_R', tmpdir)
+def test_bifurcation_R(tmpdir, exePath):
+    results = run_test_case_by_name('bifurcation_R', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 3997.46433118937, rtol=1e-5)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 3984.67700709878, rtol=1e-5)
     assert np.isclose(get_result(results, 'pressure', 1, 0, -1, 'point'), 3984.67700709878, rtol=1e-5)
@@ -183,8 +189,8 @@ def test_bifurcation_R(tmpdir):
     assert np.isclose(get_result(results, 'flow', 2, -1, -1, 'point'), 3.9925, rtol=1e-5)
 
 
-def test_bifurcation_R_stab(tmpdir):
-    results = run_test_case_by_name('bifurcation_R_stab', tmpdir)
+def test_bifurcation_R_stab(tmpdir, exePath):
+    results = run_test_case_by_name('bifurcation_R_stab', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 3997.46433118937, rtol=1e-6)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 3984.67700709878, rtol=1e-6)
     assert np.isclose(get_result(results, 'pressure', 1, 0, -1, 'point'), 3984.67700709878, rtol=1e-6)
@@ -195,8 +201,8 @@ def test_bifurcation_R_stab(tmpdir):
     assert np.isclose(get_result(results, 'flow', 2, -1, -1, 'point'), 3.9925, rtol=1e-6)
 
 
-def test_bifurcation_RCR(tmpdir):
-    results = run_test_case_by_name('bifurcation_RCR', tmpdir)
+def test_bifurcation_RCR(tmpdir, exePath):
+    results = run_test_case_by_name('bifurcation_RCR', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0,  0, np.arange(100, 200), 'mean'), 123878.022943, rtol=1e-7)
     assert np.isclose(get_result(results, 'pressure', 0,  0, np.arange(100, 200), 'max'), 168182.372624, rtol=1e-7)
     assert np.isclose(get_result(results, 'pressure', 0,  0, np.arange(100, 200), 'min'), 89237.6441223, rtol=1e-7)
@@ -212,8 +218,8 @@ def test_bifurcation_RCR(tmpdir):
     assert np.isclose(get_result(results, 'flow', 1, -1, np.arange(100, 200), 'min'), -3.35029015773, rtol=1e-7)
 
 
-def test_bifurcation_RCR_staticFunc(tmpdir):
-    results = run_test_case_by_name('bifurcation_RCR_staticFunc', tmpdir)
+def test_bifurcation_RCR_staticFunc(tmpdir, exePath):
+    results = run_test_case_by_name('bifurcation_RCR_staticFunc', tmpdir, exePath)
     assert np.isclose(get_result(results, 'pressure', 0, 0, -1, 'point'), 3997.46433118937, rtol=1e-6,)
     assert np.isclose(get_result(results, 'pressure', 0, -1, -1, 'point'), 3984.67700709878, rtol=1e-6,)
     assert np.isclose(get_result(results, 'pressure', 1, 0, -1, 'point'), 3984.67700709878, rtol=1e-6,)

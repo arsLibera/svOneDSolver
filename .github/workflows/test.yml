@@ -19,7 +19,8 @@ jobs:
           pip install numpy
       - name: result tests
         run: |
-          pytest Tests/SystemTests
+          # We're providing the path to the EXE based on the prior build solver step.
+          pytest Tests/SystemTests --relativeExePath="build_skyline/bin/OneDSolver"
       - name: result unit tests 
         run: |
           cd build_skyline

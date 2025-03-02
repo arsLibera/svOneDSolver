@@ -384,7 +384,7 @@ void runOneDSolver(const cvOneD::options& opts){
 
 }
 
-void convertOptions(const std::string& legacyFilename, const std::string& jsonFilename){
+void convertLegacyToJsonOptions(const std::string& legacyFilename, const std::string& jsonFilename){
   // Convert legacy format to JSON and print it to file
   cvOneD::options opts{};
   cvOneD::readOptionsLegacyFormat(legacyFilename,&opts);
@@ -426,6 +426,12 @@ ArgOptions parseInputArgs(int argc, char** argv) {
     return options;
 }
 
+cvOneD::options readLegacyOptions(std::string const& inputFile){
+  cvOneD::options opts{};
+  cvOneD::readOptionsLegacyFormat(inputFile,&opts);
+  return opts;
+}
+
 // Parse the incoming arguments and read the options file.
 // Also performs option file conversions if requested by user.
 //
@@ -449,9 +455,7 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
   // Legacy behavior
   if(argc == 2){
     string inputFile(argv[1]);
-    cvOneD::options opts{};
-    cvOneD::readOptionsLegacyFormat(inputFile,&opts);
-    return opts;
+    return readLegacyOptions(inputFile);
   }
 
   // Default behavior
@@ -459,7 +463,7 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
 
   // Conversion
   if(argOptions.legacyConversionInput && argOptions.jsonConversionOutput){
-    convertOptions(*argOptions.legacyConversionInput, 
+    convertLegacyToJsonOptions(*argOptions.legacyConversionInput, 
                    *argOptions.jsonConversionOutput);
   }
 
