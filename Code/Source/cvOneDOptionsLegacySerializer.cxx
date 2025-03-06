@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "cvOneDUtility.h"
-#include "cvOneDGlobal.h"
 
 namespace cvOneD{
 
@@ -126,10 +125,25 @@ void readOptionsLegacyFormat(string inputFile, options* opts){
         try{
           // Get Joint Name
           opts->jointName.push_back(tokenizedString[1]);
-//          opts->jointNode.push_back(atof(tokenizedString[2].c_str()));
-          opts->jointNode.push_back(tokenizedString[2]);
+
+          // The legacy input files included a "joint node", but it is
+          // never utilized in simulation. The legacy behavior was, instead
+          // to simply associate each joint with the sequentially listed
+          // nodeXcoord, nodeYcoord, and nodeZcoord.
+          //
+          // To preserve this legacy behavior, we're not going to deserialize
+          // the jointNode. Instead, we're going to replace "jointNode" with
+          // the sequential node item name. That's **wrong** -- we should be 
+          // using "jointNode"!
+          // But! it preserves the legacy behavior of the existing legacy 
+          // options files when we refactor the actual utilization of the 
+          // options to use the jointNode.
+          //
+          // The actual population of the jointNode option is done in a 
+          // post-processing step after we finish processing the file.
           opts->jointInletName.push_back(tokenizedString[3]);
           opts->jointOutletName.push_back(tokenizedString[4]);
+
         }catch(...){
           throw cvException(string("ERROR: Invalid JOINT Format. Line " + to_string(lineCount) + "\n").c_str());
         }
@@ -258,22 +272,13 @@ void readOptionsLegacyFormat(string inputFile, options* opts){
         }else if(tokenizedString.size() < 2){
           throw cvException(string("ERROR: Not enough parameters for OUTPUT token. Line " + to_string(lineCount) + "\n").c_str());
         }
-        // Output Type
-        if(upper_string(tokenizedString[1]) == "TEXT"){
-          cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_TEXT;
-        }else if(upper_string(tokenizedString[1]) == "VTK"){
-          cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_VTK;
-        }else if(upper_string(tokenizedString[1]) == "BOTH"){
-          cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_BOTH;
-        }else{
-          throw cvException("ERROR: Invalid OUTPUT Type.\n");
-        }
+
+        // Collect and store the output type data
+        opts->outputType = tokenizedString[1];
         if(tokenizedString.size() > 2){
-          cvOneDGlobal::vtkOutputType = atoi(tokenizedString[2].c_str());
-          if(cvOneDGlobal::vtkOutputType > 1){
-            throw cvException("ERROR: Invalid OUTPUT VTK Type.\n");
-          }
+          opts->vtkOutputType = atoi(tokenizedString[2].c_str());
         }
+
       }else if(upper_string(tokenizedString[0]) == std::string("DATATABLE")){
         // printf("Found Data Table.\n");
         try{
@@ -361,6 +366,17 @@ void readOptionsLegacyFormat(string inputFile, options* opts){
     // Increment Line Count
     lineCount++;
   }
+
+  // Post-process: to preserve legacy behavior, we're
+  // making each joint node the corresponding sequential 
+  // node from the node array. See comment above for additional details.
+  if(opts->jointName.size() > opts->nodeName.size()){
+    throw cvException("ERROR: there must be at least as many nodes as there are joints.\n");
+  }
+  for(size_t k = 0; k < opts->jointName.size(); ++k){
+    opts->jointNode.push_back(opts->nodeName.at(k));
+  }
+
   // Close File
   infile.close();
 }

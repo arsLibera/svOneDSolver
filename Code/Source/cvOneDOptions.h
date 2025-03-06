@@ -35,6 +35,7 @@
 #include <string>
 #include <math.h>
 #include <memory>
+#include <optional>
 #include "cvOneDTypes.h"
 #include "cvOneDException.h"
 
@@ -49,21 +50,14 @@ struct options{
 
     // NODE DATA
     cvStringVec nodeName;
-    // Note that these coordinates are also used
-    // for the joints through an implicit mapping
     cvDoubleVec nodeXcoord;
     cvDoubleVec nodeYcoord;
     cvDoubleVec nodeZcoord;
 
     // JOINT DATA
     cvStringVec jointName;
-    
-    // "jointNode" isn't used currently -- but we want
-    // to start integrating it. It can be used to make
-    // the mapping from joint->node explicit. Right
-    // now, the mapping is implicit: each joint is 
-    // associated with the node of the same index in
-    // the list of nodes.
+    // jointNode: name of the associated node that we will use 
+    // to get the XYZ coordinates when creating the joint.
     cvStringVec jointNode; 
 
     cvStringVec jointInletName;
@@ -121,7 +115,12 @@ struct options{
     double convergenceTolerance;
     int    useIV;
     int    useStab;
-    string outputType;
+
+    // These are to preserve legacy behavior and are 
+    // expected to be eventually migrated into a 
+    // post-processing step.
+    string outputType = "TEXT";
+    std::optional<int> vtkOutputType = std::nullopt; 
 };
 
 void validateOptions(options const& opts);

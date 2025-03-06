@@ -10,7 +10,8 @@
     "convergenceTolerance": 1e-06,
     "useIV": 1,
     "useStab": 0,
-    "outputType": "NONE"
+    "outputType": "SOME OUTPUT TYPE",
+    "vtkOutputType": 23
   },
   "materials": [
     {

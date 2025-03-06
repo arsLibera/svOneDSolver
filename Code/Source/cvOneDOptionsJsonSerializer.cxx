@@ -81,29 +81,22 @@ nlohmann::ordered_json serialize_joint_data(const options& opts) {
     nlohmann::ordered_json j = nlohmann::ordered_json::array();
 
     // Check consistency of the joint inlet and outlet vectors
-    check_consistent_size("joints", opts.jointName,
+    check_consistent_size("joints", opts.jointName, opts.jointNode, 
                           opts.jointInletListNames, opts.jointInletListNumber,
                           opts.jointOutletListNames, opts.jointOutletListNumber,
                           opts.jointInletList, opts.jointOutletList);
 
     size_t jointCount = opts.jointName.size();
 
-    // There must be enough nodes for us to make associations. This is 
-    // an implicit assumption made in the current joint creation code.
-    if( opts.nodeName.size() < jointCount ){
-        throw std::runtime_error("The implicit joint-node association requires that there be at least as many nodes as there are joints.");
-    }
-
     for (size_t i = 0; i < jointCount; ++i) {
         nlohmann::ordered_json joint;
 
         // Add JOINT data
-        // We're adding the node based on the index so we
-        // can start incorporating the explicit association
-        // from the implicit one currently used in the code.
+        // Now that we're actually populating the joint node associations
+        // when deserializing the legacy format, we can utilize them here.
         joint["joint"] = {
-            {"id", "J" + std::to_string(i + 1)},
-            {"associatedNode", opts.nodeName.at(i)},
+            {"id", opts.jointName.at(i)},
+            {"associatedNode", opts.jointNode.at(i)},
             {"inletName", opts.jointInletListNames.at(i)},
             {"outletName", opts.jointOutletListNames.at(i)}
         };
@@ -225,7 +218,13 @@ nlohmann::ordered_json serializeSolverOptions(options const& opts) {
     solverOptions["convergenceTolerance"] = opts.convergenceTolerance;
     solverOptions["useIV"] = opts.useIV;
     solverOptions["useStab"] = opts.useStab;
+
+    // For now, we're serializing the output data.
+    // In the future, we'll want to migrate these.
     solverOptions["outputType"] = opts.outputType;
+    if(opts.vtkOutputType){
+        solverOptions["vtkOutputType"] = *opts.vtkOutputType;
+    }
 
     return solverOptions;
 }

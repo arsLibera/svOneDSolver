@@ -7,6 +7,81 @@ Some of the main contributors are I. Vignon-Clementel, N. Wilson, J. Wan, B. Ste
 
 The one-dimensional equations for the flow of a Newtonian, incompressible fluid in a deforming, elastic domain consist of the continuity equation, a single axial momentum balance equation, a constitutive equation, and suitable initial and boundary conditions. 
 
+## Usage
+Usage assumes that you have built from the source as described below.
+
+### Basic usage
+There are three supported usages for the generated executable. 
+* The quotations around the input args are optional
+* Input file paths can be specified as a local file name or an absolute path
+
+#### 1. Run simulation using a legacy input file
+Run the simulation with with a legacy ".in" input file.
+~~~
+svOneDSolver "<inputFileName>.in"
+~~~
+
+#### 2. Convert legacy input file to JSON
+Convert a legacy input file to a JSON input file
+~~~
+svOneDSolver -legacyToJson "<inputFileName>.in" "<jsonInputFile>.json"
+~~~
+
+#### 3. Run simulation using a JSON input file
+Run the simulation using a JSON input file
+~~~
+svOneDSolver -jsonInput "<jsonInputFile>.json"
+~~~
+
+### Manually run tests
+System and unit tests can be run using ctest and pytest commands. 
+
+The following assume:
+* A source folder "svOneDSolver/" and a neighboring build folder "svOneDSolver_build/"
+* The source has been built the using "cmake" and "make" commands (as described above)
+
+#### Unit tests
+Navigate to the build folder and run the ctest command.
+
+~~~
+ctest
+~~~
+
+#### System tests
+The system tests run simulations and verify some of the resulting output. 
+
+You must have python and pytest installed.
+
+Navigate to the source folder, and run the following:
+
+~~~
+pytest Tests/SystemTests --relativeExePath="../svOneDSolver_build/bin/OneDSolver"
+~~~
+
+If the binary is in a different location, specify the correct location.
+
+<details>
+<summary>Running system tests in parallel</summary>
+<br>
+
+This offers some details for how to set up a python environment and install the relevant packages on linux, and then run the tests in parallel. Note that depending on the OS this setup process will vary, but the basic steps will remain the same.
+
+Navigate to the source folder, and run the following:
+    
+```
+sudo apt install python3-venv
+python3 -m venv venv
+source venv/bin/activate
+pip install numpy pytest-xdist
+```
+
+With `xdist` available, run the tests in parallel (`-n <number of cores>`).
+    
+```
+pytest Tests/SystemTests --relativeExePath="../svOneDSolver_build/bin/OneDSolver" -n auto
+```
+</details>
+
 ## Installation
 
 ### Prerequisites

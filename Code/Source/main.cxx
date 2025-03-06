@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <optional>
+#include <algorithm>
 
 #include "cvOneDGlobal.h"
 #include "cvOneDModelManager.h"
@@ -75,6 +76,23 @@ int getDataTableIDFromStringKey(string key){
 // ===============================
 // CREATE MODEL AND RUN SIMULATION
 // ===============================
+namespace{
+
+size_t findJointNodeIndexOrThrow(const auto& jointNodeName, const auto& nodeNames, const auto& jointName){
+  // Return the index of "nodeNames" that corresponds to the "jointNodeName"
+  // or throw a context-specific error.
+
+  auto const iter = std::find(nodeNames.begin(), nodeNames.end(), jointNodeName);
+  if (iter == nodeNames.end()) {
+    std::string const errMsg = "ERROR: The node '" + jointNodeName + "' required by joint '" 
+      + jointName + "' was not found in the list of nodes.";
+    throw cvException(errMsg.c_str());
+  }
+  return std::distance(nodeNames.begin(), iter); 
+}
+
+} // namespace
+
 void createAndRunModel(const cvOneD::options& opts) {
 
   // MESSAGE
@@ -142,9 +160,15 @@ void createAndRunModel(const cvOneD::options& opts) {
         asOutlets[loopB] = opts.jointOutletList[jointOutletID][loopB];
       }
     }
+
+    // Find the index of the indicated node.
+    auto const jointName = opts.jointName.at(loopA);
+    auto const nodeIndex = findJointNodeIndexOrThrow( 
+      opts.jointNode.at(loopA), opts.nodeName, jointName);
+
     // Finally Create Joint
-    jointError = oned->CreateJoint((char*)opts.jointName[loopA].c_str(),
-                                   opts.nodeXcoord[loopA], opts.nodeYcoord[loopA], opts.nodeZcoord[loopA],
+    jointError = oned->CreateJoint(jointName.c_str(),
+                                   opts.nodeXcoord[nodeIndex], opts.nodeYcoord[nodeIndex], opts.nodeZcoord[nodeIndex],
                                    totJointInlets, totJointOutlets, asInlets, asOutlets);
     if(jointError == CV_ERROR) {
       throw cvException(string("ERROR: Error Creating JOINT " + to_string(loopA) + "\n").c_str());
@@ -307,6 +331,32 @@ void createAndRunModel(const cvOneD::options& opts) {
 // ==============
 // RUN ONEDSOLVER
 // ==============
+
+namespace {
+
+void setOutputGlobals(const cvOneD::options& opts){  
+
+  if(upper_string(opts.outputType) == "TEXT"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_TEXT;
+  }else if(upper_string(opts.outputType) == "VTK"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_VTK;
+  }else if(upper_string(opts.outputType) == "BOTH"){
+    cvOneDGlobal::outputType = OutputTypeScope::OUTPUT_BOTH;
+  }else{
+    throw cvException("ERROR: Invalid OUTPUT Type.\n");
+  }
+
+  if(opts.vtkOutputType){
+    cvOneDGlobal::vtkOutputType = *opts.vtkOutputType;
+    if(cvOneDGlobal::vtkOutputType > 1){
+      throw cvException("ERROR: Invalid OUTPUT VTK Type.\n");
+    }
+  }
+  
+}
+
+} // namespace
+
 void runOneDSolver(const cvOneD::options& opts){
 
   // Model Checking
@@ -321,12 +371,20 @@ void runOneDSolver(const cvOneD::options& opts){
   string jsonFilename("echo.json");
   cvOneD::writeJsonOptions(opts, jsonFilename);
 
+  // Per the existing behavior, we'll set output globals 
+  // from the options. TODO: we should really just
+  // consume option data from the options rather
+  // than setting it in a global variable. Besides that,
+  // we should move the VTK options to a postprocessor
+  // rather than have them in the solver options.
+  setOutputGlobals(opts);
+
   // Create Model and Run Simulation
   createAndRunModel(opts);
 
 }
 
-void convertOptions(const std::string& legacyFilename, const std::string& jsonFilename){
+void convertLegacyToJsonOptions(const std::string& legacyFilename, const std::string& jsonFilename){
   // Convert legacy format to JSON and print it to file
   cvOneD::options opts{};
   cvOneD::readOptionsLegacyFormat(legacyFilename,&opts);
@@ -344,6 +402,14 @@ struct ArgOptions{
   std::optional<std::string> jsonConversionOutput = std::nullopt;
 };
 
+std::string removeQuotesIfPresent(const std::string& str) {
+    std::string result = str;
+    if (result.front() == '"' && result.back() == '"') {
+        result = result.substr(1, result.length() - 2); 
+    }
+    return result;
+}
+
 ArgOptions parseInputArgs(int argc, char** argv) {
     // Right now, we don't check for bad arguments but we could
     // do that in here if we want more coherent behavior.
@@ -353,19 +419,25 @@ ArgOptions parseInputArgs(int argc, char** argv) {
         std::string arg = argv[i];
 
         if (arg == "-jsonInput" && i + 1 < argc) {
-            options.jsonInput = argv[i + 1];
+            options.jsonInput = removeQuotesIfPresent(argv[i + 1]);
             i++;
         }
 
         if (arg == "-legacyToJson" && i + 2 < argc) {
-            options.legacyConversionInput = argv[i + 1];
-            options.jsonConversionOutput = argv[i + 2];
+            options.legacyConversionInput = removeQuotesIfPresent(argv[i + 1]);
+            options.jsonConversionOutput = removeQuotesIfPresent(argv[i + 2]);
             i++;
         }
 
     }
 
     return options;
+}
+
+cvOneD::options readLegacyOptions(std::string const& inputFile){
+  cvOneD::options opts{};
+  cvOneD::readOptionsLegacyFormat(inputFile,&opts);
+  return opts;
 }
 
 // Parse the incoming arguments and read the options file.
@@ -390,10 +462,8 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
   
   // Legacy behavior
   if(argc == 2){
-    string inputFile(argv[1]);
-    cvOneD::options opts{};
-    cvOneD::readOptionsLegacyFormat(inputFile,&opts);
-    return opts;
+    string inputFile{removeQuotesIfPresent(argv[1])};
+    return readLegacyOptions(inputFile);
   }
 
   // Default behavior
@@ -401,7 +471,7 @@ std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv){
 
   // Conversion
   if(argOptions.legacyConversionInput && argOptions.jsonConversionOutput){
-    convertOptions(*argOptions.legacyConversionInput, 
+    convertLegacyToJsonOptions(*argOptions.legacyConversionInput, 
                    *argOptions.jsonConversionOutput);
   }
 

@@ -15,11 +15,12 @@ jobs:
           make
       - name: install dependencies
         run: |
-          pip install pytest pytest-cov pytest-mock
+          pip install pytest pytest-cov pytest-mock pytest-xdist
           pip install numpy
-      - name: result tests
+      - name: result simulation system tests
         run: |
-          pytest Tests/SystemTests
+          # We're providing the path to the EXE based on the prior build solver step.
+          pytest Tests/SystemTests -n auto --relativeExePath="build_skyline/bin/OneDSolver" 
       - name: result unit tests 
         run: |
           cd build_skyline
