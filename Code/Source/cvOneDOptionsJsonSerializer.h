@@ -35,11 +35,9 @@
 
 #include "cvOneDOptions.h"
 
-using namespace std;
-
 namespace cvOneD{
 
-void writeJsonOptions(options const& opts, string const& fileName);
+void writeJsonOptions(options const& opts, std::string const& fileName);
 
 } // namespace cvOneD
 

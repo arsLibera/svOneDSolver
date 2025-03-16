@@ -38,7 +38,7 @@ System and unit tests can be run using ctest and pytest commands.
 
 The following assume:
 * A source folder "svOneDSolver/" and a neighboring build folder "svOneDSolver_build/"
-* The source has been built the using "cmake" and "make" commands (as described above)
+* The source has been built the using "cmake" and "make" commands (as described below)
 
 #### Unit tests
 Navigate to the build folder and run the ctest command.

@@ -30,18 +30,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CVONEDOPTIONSJSONPARSER_H
-#define CVONEDOPTIONSJSONPARSER_H
+#ifndef CVONEDSETUPMODEL_H
+#define CVONEDSETUPMODEL_H
 
 #include "cvOneDOptions.h"
 
 namespace cvOneD{
 
-options readJsonOptions(std::string const& inputFile);
+// Using the input options provided, set up the model, and run it.
+void runOneDSolver(const cvOneD::options& opts);
 
 } // namespace cvOneD
 
-#endif // CVONEDOPTIONSJSONPARSER_H
-
+#endif // CVONEDSETUPMODEL_H
 
 

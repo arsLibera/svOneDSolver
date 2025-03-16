@@ -30,18 +30,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CVONEDOPTIONSJSONPARSER_H
-#define CVONEDOPTIONSJSONPARSER_H
+#ifndef CVONEDINPUTFLAGPARSER_H
+#define CVONEDINPUTFLAGPARSER_H
+
+#include <optional>
 
 #include "cvOneDOptions.h"
 
 namespace cvOneD{
 
-options readJsonOptions(std::string const& inputFile);
+std::optional<cvOneD::options> parseArgsAndHandleOptions(int argc, char** argv);
 
 } // namespace cvOneD
 
-#endif // CVONEDOPTIONSJSONPARSER_H
+#endif // CVONEDINPUTFLAGPARSER_H
 
 
 
