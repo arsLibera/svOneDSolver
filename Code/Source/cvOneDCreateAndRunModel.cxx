@@ -307,8 +307,6 @@ void createAndRunModel(const cvOneD::options& opts) {
   delete[] inletCurveValue;
 }
 
-
-
 void setOutputGlobals(const cvOneD::options& opts){  
 
   if(upper_string(opts.outputType) == "TEXT"){
@@ -329,7 +327,6 @@ void setOutputGlobals(const cvOneD::options& opts){
   }
   
 }
-
 
 } // namespace
 

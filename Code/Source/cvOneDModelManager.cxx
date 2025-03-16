@@ -120,6 +120,7 @@ int cvOneDModelManager::CreateSegment(char   *segName,long segID, double  segLen
     IsOutlet = true;
   }
 
+  
   cvOneDSegment *seg = new cvOneDSegment(InitialInletArea,InitialOutletArea,
                                          InitialFlow,IsOutlet);
 
@@ -127,7 +128,6 @@ int cvOneDModelManager::CreateSegment(char   *segName,long segID, double  segLen
   seg -> setSegmentID(segID);
   seg -> setSegmentName(segName);
   seg -> setParentModel((void *)&cvOneDGlobal::gModelList[cvOneDGlobal::currentModel]);
-  seg -> setSegmentLength(segLen);
   seg -> setNumElements(numEls);
   seg -> setInOutJoints(inNode, outNode);
   seg -> setMaterialID(matID);

@@ -29,6 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cmath>
+
 #include "cvOneDOptions.h"
 
 namespace cvOneD{
@@ -92,39 +94,54 @@ namespace{
     checkForDuplicateValues(opts.segmentID, "Segment ID");
   }
 
-  void checkForNegatives(options const& opts){
-    // Check for negative areas
-    checkForNegativeValues(opts.segmentInInletArea, opts.segmentName, "Inlet area");
-    checkForNegativeValues(opts.segmentInOutletArea, opts.segmentName, "Outlet area");
+  void checkSegmentSpatialCharacteristics(options const& opts){
+    // Check for valid spatial characteristics
+    for(size_t k = 0; k < opts.segmentsSpatialCharacteristics.size(); ++k){
+
+      try{
+        checkSpatialCharacteristics(opts.segmentsSpatialCharacteristics.at(k));
+      }
+      catch(cvException ex){
+        throw cvException("ERROR: invalid segment with ID '"
+          + std::to_string(opts.segmentID.at(k)) + "' \n Cause: " 
+          + ex.what() + "\n");        
+      }
+
+    }
   }
 
   void checkSegmentLengthConsistency(options const& opts){
-    bool inconsistencyFound = false;
     // Get total number of segments
-    int totSegs = opts.segmentLength.size();
-    double segLength = 0.0;
-    int inNode = 0;
-    int outNode = 0;
-    double dx = 0.0;
-    double dy = 0.0;
-    double dz = 0.0;
-    double nodeDist = 0.0;
-    for(int loopA=0;loopA<totSegs;loopA++){
+    int nSegs = opts.segmentsSpatialCharacteristics.size();
+ 
+    bool inconsistentLengths = false;
+    for(int loopA=0;loopA<nSegs;loopA++){
       // Get Current Segment Length
-      segLength = opts.segmentLength[loopA];
-      // Get end nodes
-      inNode = opts.segmentInNode[loopA];
-      outNode = opts.segmentOutNode[loopA];
-      // Get node spatial distance
-      dx = opts.nodeXcoord[outNode] - opts.nodeXcoord[inNode];
-      dy = opts.nodeYcoord[outNode] - opts.nodeYcoord[inNode];
-      dz = opts.nodeZcoord[outNode] - opts.nodeZcoord[inNode];
+      auto const& ssc = opts.segmentsSpatialCharacteristics.at(loopA);
+      auto const segLength = ssc.values.back().z - ssc.values.front().z;
 
-      nodeDist = sqrt(dx*dx + dy*dy + dz*dz);
+      // Get end nodes
+      auto const inNode = opts.segmentInNode[loopA];
+      auto const outNode = opts.segmentOutNode[loopA];
+      
+      // Get node spatial distance
+      auto const dx = opts.nodeXcoord[outNode] - opts.nodeXcoord[inNode];
+      auto const dy = opts.nodeYcoord[outNode] - opts.nodeYcoord[inNode];
+      auto const dz = opts.nodeZcoord[outNode] - opts.nodeZcoord[inNode];
+
+      auto const nodeDist = sqrt(dx*dx + dy*dy + dz*dz);
+   
+      // We'll use a tolerance in the comparison because we don't want to be 
+      // picking up floating point errors.
+      if(std::abs(segLength - nodeDist) < 1e-14){
+        inconsistentLengths = true;
+      }
+      
     }
-    if(inconsistencyFound){
-      printf("WARNING: Inconsistency detected between segment length and end node distance.\n");
-      printf("Changing the segment lengths.\n");
+
+    if(inconsistentLengths){
+      printf("WARNING: Inconsistency detected between at least one segment length and corresponding node distances.\n");
+      printf("You should use segment lengths that correspond to the node distances.\n");
     }
   }
 
@@ -175,7 +192,7 @@ void validateOptions(options const& opts){
   checkForDuplicates(opts);
 
   // Check for negative values when there shouldn't be
-  checkForNegatives(opts);
+  checkSegmentSpatialCharacteristics(opts);
 
   // Check the consistency between node coords and segment lengths
   checkSegmentLengthConsistency(opts);

@@ -42,13 +42,8 @@
 #include "cvOneDMthModelBase.h"
 
 // Static Declarations
-long cvOneDSegment::NumSegments;
 
 cvOneDSegment::cvOneDSegment(){
-
-  cvOneDSegment::NumSegments++;
-  InitInletS = 3.1415926;
-  InitOutletS   = 3.1415926; //the ratio couldn't be too big ?
   InitialFlow = 0;
   InitialdFlowdT=0;
   InitialPressure=0;
@@ -66,10 +61,11 @@ cvOneDSegment::cvOneDSegment(){
   waveValueLength = 0;
 }
 
-cvOneDSegment::cvOneDSegment(double IIA, double IOA, double IF, bool IO){
-  cvOneDSegment::NumSegments++;
-  InitInletS     = IIA; //Initial Inlet Area
-  InitOutletS    = IOA; //Initial Outlet Area
+cvOneDSegment::cvOneDSegment(std::vector<double> const& zCoordinates, std::vector<double> const& initialAreas, double IF, bool IO){
+  
+  spatialCharacteristics.zCoordinates = zCoordinates;
+  spatialCharacteristics.initialAreas = initialAreas;
+
   InitialFlow    = IF;
   InitialdFlowdT = 0;
   IsOutlet       = IO;
@@ -84,15 +80,15 @@ cvOneDSegment::cvOneDSegment(double IIA, double IOA, double IF, bool IO){
   impedanceLength = 0;
   rpCapRdLength = 0;
   waveValueLength = 0;
+
 }
 
-cvOneDSegment::~cvOneDSegment(){
-  cvOneDSegment::NumSegments--;
-}
-
-cvOneDSegment * cvOneDSegment::New(double IA,double FA,double IF,bool IO){    
+cvOneDSegment * cvOneDSegment::New(std::vector<double> const& zCoordinates, 
+                  std::vector<double> const& initialAreas, 
+                  double IF, 
+                  bool IO){    
   // return new cvOneDSegment(IA, FA, IF, IO, IS);
-  return new cvOneDSegment(IA, FA, IF, IO);
+  return new cvOneDSegment(zCoordinates, initialAreas, IF, IO);
 }
 
 void cvOneDSegment::Delete(void){
@@ -124,27 +120,18 @@ void *cvOneDSegment::getParentModel(void){
   return parentModel;
 }
 
-void cvOneDSegment::setSegmentLength(double len){
-  SegmentLength = len;
-  zin = 0;
-  zout = len;
-}
-
-void cvOneDSegment::setZOfTwoEnds(double zin_, double zout_){
-  zin = zin_;
-  zout = zout_;
-}
-
 double cvOneDSegment::getInletZ(){
-  return zin;
+  return spatialCharacteristics.zCoordinates.front();
 }
 
 double cvOneDSegment::getOutletZ(){
-  return zout;
+  return spatialCharacteristics.zCoordinates.back();
 }
 
 double cvOneDSegment::getSegmentLength(void){
-  return SegmentLength;
+  // The segment length is the distance between the start and end
+  // of this segment.
+  return spatialCharacteristics.zCoordinates.back() - spatialCharacteristics.zCoordinates.front();
 }
 
 void cvOneDSegment::setNumElements(long nels){
@@ -156,11 +143,11 @@ long cvOneDSegment::getNumElements(void){
 }
 
 double cvOneDSegment::getInitInletS(void){
-  return InitInletS;
+  return spatialCharacteristics.initialAreas.front();
 }
 
 double cvOneDSegment::getInitOutletS(void){
-  return InitOutletS;
+  return spatialCharacteristics.initialAreas.back();
 }
 
 double cvOneDSegment::getInitialPressure(void){

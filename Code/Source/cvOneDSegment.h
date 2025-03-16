@@ -36,11 +36,14 @@
 //  cvOneDSegment.h: Class to handle 1D network segments
 //  ~~~~~~~~~~~
 //
-//  This the C representation of a model segment.  
+//  Represents a model segment.  
 //
+
+#include <vector>
 
 #include "cvOneDEnums.h"
 #include "cvOneDMesh.h"
+#include "cvOneDSegmentSpatialCharacteristics.h"
 
 typedef void (*MeshEvaluatorFunctionPtr)();
 
@@ -50,11 +53,17 @@ class cvOneDSegment{
    
     // Default Constructor/Destructor
     cvOneDSegment();
-    cvOneDSegment(double IA, double FA, double IF, bool IO);
+    cvOneDSegment(std::vector<double> const& zCoordinates, 
+                  std::vector<double> const& initialAreas, 
+                  double IF, 
+                  bool IO);
     ~cvOneDSegment();
 
     // Safe Constructor
-    static cvOneDSegment * New(double IA, double FA, double IF, bool IO);
+    static cvOneDSegment * New(std::vector<double> const& zCoordinates, 
+                               std::vector<double> const& initialAreas, 
+                               double IF, 
+                               bool IO);
     
     // Safe Destructor
     void Delete(void);
@@ -68,9 +77,7 @@ class cvOneDSegment{
     void    *getParentModel(void);
 
     // Segment Length/Numels/Type (defines mesh spacing);
-    void     setSegmentLength(double len);
     double   getSegmentLength(void);
-    void     setZOfTwoEnds(double zin, double zout);
     double   getInletZ();
     double   getOutletZ();
     void     setNumElements(long nels);
@@ -235,8 +242,6 @@ class cvOneDSegment{
     
     // These define the segment's mesh properties, the mesh 
     // evaluator to be used by tesselate(), and the mesh itself.
-    double SegmentLength;
-    double zin, zout;
     long NumElements;
     MeshType SegmentMeshType;
     
@@ -254,13 +259,22 @@ class cvOneDSegment{
     // Have we tesselated the segment?
     bool isTesselated;
 
-    // How Many Segments?
-    static long NumSegments;
+    // We're replacing the inlet/outlet area with a set of distributed 
+    // measurements that can be interpolated. We need the z-position as
+    // well, so we'll roll the start/end positions into this structure.
+    // (and the segment length...but that should always have been
+    // calculated from the z-positions since it's redundant information)
+    //
+    // This is equivalent to the previous implementation when only 
+    // using four values: inlet z position, outlet z position, 
+    // initial inlet area, initial outlet area
+    //
+    // It's always required that there are at least two elements, and
+    // that first and last elements are the inlet and outlet.
+    cvOneD::SegmentSpatialCharacteristics spatialCharacteristics;
 
     // Some other info
     double InitialPressure;
-    double InitInletS;
-    double InitOutletS;
     double InitialFlow;
     double InitialdFlowdT;
     bool IsStenosis;

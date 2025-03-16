@@ -31,3 +31,16 @@
 
 #include "cvOneDException.h"
 
+// Constructor that takes a const char*
+cvException::cvException(const char* m) : msg(m) {}
+
+// Constructor that takes a std::string
+cvException::cvException(const std::string& m) : msg(m) {}
+
+// Destructor
+cvException::~cvException() throw() {}
+
+// what() function to return the exception message
+const char* cvException::what() const throw() {
+    return msg.c_str();
+}

@@ -3,6 +3,10 @@
  %{
  /* Includes the header in the wrapper code */
  #include "cvOneDOptions.h"
+ // This is defunct. We need to create a new header
+ // and include it here based on what functionality
+ // we want to export. Otherwise, this SWIG interface
+ // should be removed.
  #include "main.h"
  using namespace std;
  %}

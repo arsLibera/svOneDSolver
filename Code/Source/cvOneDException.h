@@ -36,15 +36,19 @@
 
 using namespace std;
 
-class cvException: public exception{
+
+class cvException : public std::exception {
   public:
     // Constructor and Destructor
-    cvException(const char* m):msg(m){}
-    virtual ~cvException() throw(){}
+    cvException(const char* m);
+    cvException(const std::string& m);
+    virtual ~cvException() throw();
+    
     // Member Functions
-	virtual const char* what() const throw() {return msg.c_str();}
+    virtual const char* what() const throw();
+
   protected:
-    string msg;
+    std::string msg;
 };
 
 #endif // CVONEDEXCEPTION_H

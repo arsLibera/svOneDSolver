@@ -199,18 +199,27 @@ void readOptionsLegacyFormat(string inputFile, options* opts){
           opts->segmentName.push_back(tokenizedString[1]);
           // long segID,
           opts->segmentID.push_back(atoi(tokenizedString[2].c_str()));
-          // double  segLen,
-          opts->segmentLength.push_back(atof(tokenizedString[3].c_str()));
+          
+          // We're going to use the existing values to populate the spatial
+          // characteristics at the start/end of the vessel in a manner
+          // consistent with the existing behavior.
+          //
+          // The z-coordinates are mostly likely only relative to the entry 
+          // of the vessel, so we shouldn't encounter an issue there.
+          double const segmentLength = atof(tokenizedString[3].c_str());
+          double const segmentInletArea = atof(tokenizedString[7].c_str());
+          double const segmentOutletArea = atof(tokenizedString[8].c_str());
+          opts->segmentsSpatialCharacteristics.emplace_back(
+            simpleSegmentSpatialCharacteristic(segmentLength,segmentInletArea,segmentOutletArea)
+          );
+        
           // long    numEls,
           opts->segmentTotEls.push_back(atoi(tokenizedString[4].c_str()));
           // long    inNode,
           opts->segmentInNode.push_back(atoi(tokenizedString[5].c_str()));
           // long    outNode,
           opts->segmentOutNode.push_back(atoi(tokenizedString[6].c_str()));
-          // double  InitialInletArea,
-          opts->segmentInInletArea.push_back(atof(tokenizedString[7].c_str()));
-          // double  InitialOutletArea,
-          opts->segmentInOutletArea.push_back(atof(tokenizedString[8].c_str()));
+
           // double  InitialFlow,
           opts->segmentInFlow.push_back(atof(tokenizedString[9].c_str()));
           // int matID,
@@ -429,12 +438,21 @@ void printSegmentData(options const& opts,FILE* f){
     fprintf(f,"SEGMENT N.: %ld\n",loopA);
     fprintf(f,"NAME: %s\n",opts.segmentName[loopA].c_str());
     fprintf(f,"ID: %ld\n",opts.segmentID[loopA]);
-    fprintf(f,"LENGTH: %f\n",opts.segmentLength[loopA]);
+
+    // To print the sizes, we need to interpret them from the 
+    // spatial characteristics.
+    auto const& ssc = opts.segmentsSpatialCharacteristics.at(loopA);
+    auto const segLength = calcSegLength(ssc);
+    auto const [segInletArea, segOutletArea] = segInletAndOutletAreas(ssc);
+    fprintf(f,"LENGTH: %f\n",segLength);
+
     fprintf(f,"NUM ELEMENTS: %ld\n",opts.segmentTotEls[loopA]);
     fprintf(f,"IN NODE: %ld\n",opts.segmentInNode[loopA]);
     fprintf(f,"OUT NODE: %ld\n",opts.segmentOutNode[loopA]);
-    fprintf(f,"IN AREA: %f\n",opts.segmentInInletArea[loopA]);
-    fprintf(f,"OUT AREA: %f\n",opts.segmentInOutletArea[loopA]);
+
+    fprintf(f,"IN AREA: %f\n",segInletArea);
+    fprintf(f,"OUT AREA: %f\n",segOutletArea);
+
     fprintf(f,"IN FLOW: %f\n",opts.segmentInFlow[loopA]); //Take out
     fprintf(f,"MAT DATATABLE NAME: %s\n",opts.segmentMatName[loopA].c_str());
     fprintf(f,"LOSS TYPE: %s\n",opts.segmentLossType[loopA].c_str()); //take out

@@ -38,6 +38,7 @@
 #include <optional>
 #include "cvOneDTypes.h"
 #include "cvOneDException.h"
+#include "cvOneDSegmentSpatialCharacteristics.h"
 
 using namespace std;
 
@@ -90,12 +91,11 @@ struct options{
     // SEGMENT DATA
     cvStringVec segmentName;
     cvLongVec   segmentID;
-    cvDoubleVec segmentLength;
+    std::vector<cvOneD::SegmentSpatialCharacteristics> segmentsSpatialCharacteristics;
     cvLongVec   segmentTotEls;
     cvLongVec   segmentInNode;
     cvLongVec   segmentOutNode;
-    cvDoubleVec segmentInInletArea;
-    cvDoubleVec segmentInOutletArea;
+
     cvDoubleVec segmentInFlow;
     cvStringVec segmentMatName;
     cvStringVec segmentLossType;
