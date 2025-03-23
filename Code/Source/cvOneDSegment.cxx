@@ -61,11 +61,9 @@ cvOneDSegment::cvOneDSegment(){
   waveValueLength = 0;
 }
 
-cvOneDSegment::cvOneDSegment(std::vector<double> const& zCoordinates, std::vector<double> const& initialAreas, double IF, bool IO){
+cvOneDSegment::cvOneDSegment(const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristicsIn, double IF, bool IO){
   
-  spatialCharacteristics.zCoordinates = zCoordinates;
-  spatialCharacteristics.initialAreas = initialAreas;
-
+  spatialCharacteristics = spatialCharacteristicsIn;
   InitialFlow    = IF;
   InitialdFlowdT = 0;
   IsOutlet       = IO;
@@ -83,13 +81,16 @@ cvOneDSegment::cvOneDSegment(std::vector<double> const& zCoordinates, std::vecto
 
 }
 
-cvOneDSegment * cvOneDSegment::New(std::vector<double> const& zCoordinates, 
-                  std::vector<double> const& initialAreas, 
-                  double IF, 
-                  bool IO){    
-  // return new cvOneDSegment(IA, FA, IF, IO, IS);
-  return new cvOneDSegment(zCoordinates, initialAreas, IF, IO);
+cvOneDSegment* cvOneDSegment::New(
+    const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristicsIn,
+    double IF,
+    bool IO) {
+  
+  // Return a new cvOneDSegment with the given parameters
+  return new cvOneDSegment(spatialCharacteristicsIn, IF, IO);
 }
+
+cvOneDSegment::~cvOneDSegment() = default;
 
 void cvOneDSegment::Delete(void){
   delete this;    
@@ -120,18 +121,17 @@ void *cvOneDSegment::getParentModel(void){
   return parentModel;
 }
 
-double cvOneDSegment::getInletZ(){
-  return spatialCharacteristics.zCoordinates.front();
+double cvOneDSegment::getInletZ() {
+  return spatialCharacteristics.values.front().z;
 }
 
-double cvOneDSegment::getOutletZ(){
-  return spatialCharacteristics.zCoordinates.back();
+double cvOneDSegment::getOutletZ() {
+  return spatialCharacteristics.values.back().z;
 }
 
-double cvOneDSegment::getSegmentLength(void){
-  // The segment length is the distance between the start and end
-  // of this segment.
-  return spatialCharacteristics.zCoordinates.back() - spatialCharacteristics.zCoordinates.front();
+double cvOneDSegment::getSegmentLength(void) {
+  // The segment length is the distance between the start and end of this segment.
+  return spatialCharacteristics.values.back().z - spatialCharacteristics.values.front().z;
 }
 
 void cvOneDSegment::setNumElements(long nels){
@@ -142,12 +142,12 @@ long cvOneDSegment::getNumElements(void){
   return NumElements;
 }
 
-double cvOneDSegment::getInitInletS(void){
-  return spatialCharacteristics.initialAreas.front();
+double cvOneDSegment::getInitInletS(void) {
+  return spatialCharacteristics.values.front().area;
 }
 
-double cvOneDSegment::getInitOutletS(void){
-  return spatialCharacteristics.initialAreas.back();
+double cvOneDSegment::getInitOutletS(void) {
+  return spatialCharacteristics.values.back().area;
 }
 
 double cvOneDSegment::getInitialPressure(void){

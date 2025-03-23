@@ -54,13 +54,14 @@ class cvOneDModelManager{
                        int numParams, double *params, int *matID);
 
     // CREATE SEGMENT
-    int CreateSegment(char* segName,long segID, double  segLen,
-                      long numEls,long inNode,long outNode,
-                      double InitialInletArea,double InitialOutletArea,
-                      double InitialFlow,int matID,char* lossType,
-                      double branchAngle,int upstreamSegment,int branchSegment,
-                      char* boundType,double* value, double* time, int num );
-
+    int CreateSegment(
+      char* segName, long segID,
+      const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristics,
+      long numEls, long inNode, long outNode,
+      double initialFlow, int matID, char* lossType,
+      double branchAngle, int upstreamSegment, int branchSegment,
+      char* boundType, double* value, double* time, int num);
+  
     // CREATE DATATABLE
     int CreateDataTable(char* dtName,char* dtType, cvDoubleVec values);
 

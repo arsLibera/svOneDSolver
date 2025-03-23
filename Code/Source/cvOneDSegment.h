@@ -51,17 +51,15 @@ class cvOneDSegment{
 
  public:    
    
-    // Default Constructor/Destructor
+    // Constructor/Destructor
     cvOneDSegment();
-    cvOneDSegment(std::vector<double> const& zCoordinates, 
-                  std::vector<double> const& initialAreas, 
+    cvOneDSegment(const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristicsIn, 
                   double IF, 
                   bool IO);
     ~cvOneDSegment();
 
     // Safe Constructor
-    static cvOneDSegment * New(std::vector<double> const& zCoordinates, 
-                               std::vector<double> const& initialAreas, 
+    static cvOneDSegment * New(const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristicsIn, 
                                double IF, 
                                bool IO);
     

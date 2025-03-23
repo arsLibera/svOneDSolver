@@ -243,14 +243,13 @@ void createAndRunModel(const cvOneD::options& opts) {
       curveTime[0] = 0.0;
       curveValue[0] = 0.0;
     }
+
     segmentError = oned->CreateSegment((char*)opts.segmentName[loopA].c_str(),
                                        (long)opts.segmentID[loopA],
-                                       opts.segmentLength[loopA],
+                                       opts.segmentsSpatialCharacteristics.at(loopA),
                                        (long)opts.segmentTotEls[loopA],
                                        (long)opts.segmentInNode[loopA],
                                        (long)opts.segmentOutNode[loopA],
-                                       opts.segmentInInletArea[loopA],
-                                       opts.segmentInOutletArea[loopA],
                                        opts.segmentInFlow[loopA],
                                        currMatID,
                                        (char*)opts.segmentLossType[loopA].c_str(),

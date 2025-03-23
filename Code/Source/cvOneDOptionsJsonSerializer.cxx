@@ -199,16 +199,38 @@ nlohmann::ordered_json serialize_data_tables(const cvStringVec& dataTableName,
     return dataTables;  // Return the array of data tables
 }
 
+nlohmann::ordered_json serializeSpatialCharacteristics(const cvOneD::SegmentSpatialCharacteristics& spatialCharacteristics) {
+    nlohmann::ordered_json spatialData;
+
+    // We're storing the z-coordinates and areas in the spatial characteristics as arrays
+    // because they are guaranteed to be the same size.
+    nlohmann::ordered_json zArray = nlohmann::ordered_json::array();
+    nlohmann::ordered_json areaArray = nlohmann::ordered_json::array();
+
+    for (const auto& value : spatialCharacteristics.values) {
+        zArray.push_back(value.z);
+        areaArray.push_back(value.area);
+    }
+
+    spatialData["z"] = zArray;
+    spatialData["area"] = areaArray;
+
+    return spatialData;
+}
+
 nlohmann::ordered_json serializeSegmentData(const options& opts) {
     nlohmann::ordered_json segments = nlohmann::ordered_json::array();
 
     // Ensure all segment-related vectors are the same size
-    check_consistent_size("segments", opts.segmentName, opts.segmentID, opts.segmentLength, 
-                          opts.segmentTotEls, opts.segmentInNode, opts.segmentOutNode, 
-                          opts.segmentInInletArea, opts.segmentInOutletArea, opts.segmentInFlow, 
-                          opts.segmentMatName, opts.segmentLossType, opts.segmentBranchAngle, 
-                          opts.segmentUpstreamSegment, opts.segmentBranchSegment, 
-                          opts.segmentBoundType, opts.segmentDataTableName);
+    check_consistent_size("segments", 
+        opts.segmentName, opts.segmentID, 
+        opts.segmentsSpatialCharacteristics, opts.segmentTotEls, 
+        opts.segmentInNode, opts.segmentOutNode, opts.segmentInFlow, 
+        opts.segmentMatName, opts.segmentLossType, 
+        opts.segmentBranchAngle, opts.segmentUpstreamSegment, 
+        opts.segmentBranchSegment, opts.segmentBoundType, 
+        opts.segmentDataTableName
+    );
 
     size_t n = opts.segmentName.size();
     for (size_t i = 0; i < n; ++i) {
@@ -216,12 +238,10 @@ nlohmann::ordered_json serializeSegmentData(const options& opts) {
 
         segment["name"] = opts.segmentName.at(i);
         segment["id"] = opts.segmentID.at(i);
-        segment["length"] = opts.segmentLength.at(i);
+        segment["spatialCharacteristics"] = serializeSpatialCharacteristics(opts.segmentsSpatialCharacteristics.at(i));
         segment["totalElements"] = opts.segmentTotEls.at(i);
         segment["inNode"] = opts.segmentInNode.at(i);
         segment["outNode"] = opts.segmentOutNode.at(i);
-        segment["inletArea"] = opts.segmentInInletArea.at(i);
-        segment["outletArea"] = opts.segmentInOutletArea.at(i);
         segment["flow"] = opts.segmentInFlow.at(i);
         segment["materialName"] = opts.segmentMatName.at(i);
         segment["lossType"] = opts.segmentLossType.at(i);
@@ -230,7 +250,7 @@ nlohmann::ordered_json serializeSegmentData(const options& opts) {
         segment["branchSegment"] = opts.segmentBranchSegment.at(i);
         segment["boundaryType"] = opts.segmentBoundType.at(i);
         segment["dataTableName"] = opts.segmentDataTableName.at(i);
-
+        
         segments.push_back(segment);
     }
 

@@ -87,12 +87,14 @@ cvOneD::options test_input_options(){
     // Segment Data
     opts.segmentName = {"Aorta", "iliacR", "iliacL"};
     opts.segmentID = {0, 1, 2};
-    opts.segmentLength = {17.670671, 12.997461, 12.997461};
+    opts.segmentsSpatialCharacteristics = {
+        cvOneD::simpleSegmentSpatialCharacteristic(17.670671, 5.027254990390394, 1.6068894493599328),
+        cvOneD::simpleSegmentSpatialCharacteristic(12.997461, 1.55, 0.3525652531134944),
+        cvOneD::simpleSegmentSpatialCharacteristic(12.997461, 1.55, 0.3525652531134944)
+    };
     opts.segmentTotEls = {50, 50, 50};
     opts.segmentInNode = {0, 1, 1};
     opts.segmentOutNode = {1, 3, 2};
-    opts.segmentInInletArea = {5.027254990390394, 1.55, 1.55};
-    opts.segmentInOutletArea = {1.6068894493599328, 0.3525652531134944, 0.3525652531134944};
     opts.segmentInFlow = {0.0, 0.0, 0.0};
     opts.segmentMatName = {"MAT1", "MAT1", "MAT1"};
     opts.segmentLossType = {"NONE", "NONE", "NONE"};
@@ -118,10 +120,25 @@ cvOneD::options test_input_options(){
     return opts;
 }
 
-TEST(JsonParser, deserialize){
-    std::string inputFilename {"TestFiles/TestInput.json"};
-    auto const expOptions = test_input_options();
+class JsonParserTest : public ::testing::TestWithParam<std::string> {};
 
+// Regardless of whether the input file is using the spatial characteristics
+// or the legacy format (segmentLength, inputArea, outputArea), we should
+// always expect the deserialization to produce the same result: spatial
+// characteristics appropriate for the input values (assuming here that
+// we're testing against the same equivalent test input).
+INSTANTIATE_TEST_SUITE_P(
+    DeserializeTests,
+    JsonParserTest,
+    ::testing::Values(
+        "TestFiles/TestInput.json",
+        "TestFiles/TestInput_WithSpatialCharacteristics.json"
+    )
+);
+
+TEST_P(JsonParserTest, deserialize) {
+    const auto& inputFilename = GetParam();
+    auto const expOptions = test_input_options();
     auto const actOptions = cvOneD::readJsonOptions(inputFilename);
     expectEqOptions(actOptions, expOptions);
 }
@@ -129,7 +146,7 @@ TEST(JsonParser, deserialize){
 TEST(JsonParser, serialize){
     // For now, we're just going to verify that the JSON output
     // exactly matches the contents of the file.
-    std::string jsonFilename {"TestFiles/TestInput.json"};
+    std::string jsonFilename {"TestFiles/TestInput_WithSpatialCharacteristics.json"};
     auto const expJsonStr = readFileContents(jsonFilename);
     std::string actFilename{"output.json"};
 

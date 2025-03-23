@@ -80,12 +80,10 @@ void expectEqOptions(const cvOneD::options& actual, const cvOneD::options& expec
     // Compare segment data
     EXPECT_EQ(expected.segmentName, actual.segmentName);
     EXPECT_EQ(expected.segmentID, actual.segmentID);
-    EXPECT_EQ(expected.segmentLength, actual.segmentLength);
+    EXPECT_EQ(expected.segmentsSpatialCharacteristics, actual.segmentsSpatialCharacteristics);
     EXPECT_EQ(expected.segmentTotEls, actual.segmentTotEls);
     EXPECT_EQ(expected.segmentInNode, actual.segmentInNode);
     EXPECT_EQ(expected.segmentOutNode, actual.segmentOutNode);
-    EXPECT_EQ(expected.segmentInInletArea, actual.segmentInInletArea);
-    EXPECT_EQ(expected.segmentInOutletArea, actual.segmentInOutletArea);
     EXPECT_EQ(expected.segmentInFlow, actual.segmentInFlow);
     EXPECT_EQ(expected.segmentMatName, actual.segmentMatName);
     EXPECT_EQ(expected.segmentLossType, actual.segmentLossType);

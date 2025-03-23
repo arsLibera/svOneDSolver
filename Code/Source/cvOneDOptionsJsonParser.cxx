@@ -190,6 +190,43 @@ void parseDataTables(const nlohmann::ordered_json& jsonData, options& opts) try 
     throw std::runtime_error("Error parsing 'dataTables': " + std::string(e.what()));
 }
 
+cvOneD::SegmentSpatialCharacteristics parseSpatialCharacteristics(const nlohmann::json& segment) {
+    if (segment.contains("spatialCharacteristics")) {
+        const auto& spatialData = segment.at("spatialCharacteristics");
+        
+        if (spatialData.contains("z") && spatialData.contains("area")) {
+            const auto& zCoordinates = spatialData.at("z");
+            const auto& areas = spatialData.at("area");
+
+            if (zCoordinates.size() != areas.size()) {
+                throw std::invalid_argument("Spatial characteristics 'z' and 'area' arrays must have the same length.");
+            }
+
+            std::vector<cvOneD::PositionalCharacteristic> positionalCharacteristics;
+            for (size_t i = 0; i < zCoordinates.size(); ++i) {
+                positionalCharacteristics.push_back(
+                    {zCoordinates[i].get<double>(), areas[i].get<double>()}
+                );
+            }
+            return cvOneD::SegmentSpatialCharacteristics(positionalCharacteristics);
+        } else {
+            throw std::invalid_argument("'spatialCharacteristics' must contain both 'z' and 'area' arrays.");
+        }
+    } else {
+        // Legacy behavior where we construct the spatial characteristics from the simpler inputs
+        if (segment.contains("length") && segment.contains("inletArea") && segment.contains("outletArea")) {
+            double length = segment.at("length").get<double>();
+            double inletArea = segment.at("inletArea").get<double>();
+            double outletArea = segment.at("outletArea").get<double>();
+
+            return cvOneD::simpleSegmentSpatialCharacteristic(length, inletArea, outletArea);
+        } else {
+            throw std::invalid_argument("Either 'spatialCharacteristics' or 'length', 'inletArea', and 'outletArea' must be provided for the segment.");
+        }
+    }
+}
+
+
 void parseSegmentData(const nlohmann::ordered_json& jsonData, options& opts) try {
     const auto& segments = jsonData.at("segments"); // Throws if "segments" does not exist
     if (!segments.is_array()) {
@@ -204,12 +241,10 @@ void parseSegmentData(const nlohmann::ordered_json& jsonData, options& opts) try
         // Parse required fields without defaults; throw if missing
         opts.segmentName.push_back(segment.at("name").get<std::string>());
         opts.segmentID.push_back(segment.at("id").get<int>());
-        opts.segmentLength.push_back(segment.at("length").get<double>());
+        opts.segmentsSpatialCharacteristics.push_back(parseSpatialCharacteristics(segment));
         opts.segmentTotEls.push_back(segment.at("totalElements").get<int>());
         opts.segmentInNode.push_back(segment.at("inNode").get<int>());
         opts.segmentOutNode.push_back(segment.at("outNode").get<int>());
-        opts.segmentInInletArea.push_back(segment.at("inletArea").get<double>());
-        opts.segmentInOutletArea.push_back(segment.at("outletArea").get<double>());
         opts.segmentInFlow.push_back(segment.at("flow").get<double>());
         opts.segmentMatName.push_back(segment.at("materialName").get<std::string>());
         opts.segmentLossType.push_back(segment.at("lossType").get<std::string>());

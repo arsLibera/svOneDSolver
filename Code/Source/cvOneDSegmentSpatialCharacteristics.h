@@ -34,8 +34,7 @@
 #define CVONEDSEGMENTSPATIALCHARACTERISTICS_H
 
 #include <utility>
-
-#include "cvOneDOptions.h"
+#include <vector>
 
 namespace cvOneD{
 
@@ -54,14 +53,19 @@ namespace cvOneD{
 // structure doesn't need to know that. The input parser does.
 
 struct PositionalCharacteristic{
-    double z;
-    double area;
+    double z; // The position of this point along the vessel axis
+    double area; // The initial cross-sectional area of the vessel cavity
+
+    bool operator==(const PositionalCharacteristic& other) const;
 };
 
 struct SegmentSpatialCharacteristics{
     std::vector<PositionalCharacteristic> values = {};
 
+    SegmentSpatialCharacteristics();
     SegmentSpatialCharacteristics(std::vector<PositionalCharacteristic> const& valuesIn);
+    
+    bool operator==(const SegmentSpatialCharacteristics& other) const;
 };
 
 // Verify that there aren't bad values

@@ -67,9 +67,8 @@ int cvOneDModelManager::CreateMaterial(char *matName, char *MaterialTypeString,
   }
 }
 
-int cvOneDModelManager::CreateSegment(char   *segName,long segID, double  segLen,
+int cvOneDModelManager::CreateSegment(char   *segName,long segID, cvOneD::SegmentSpatialCharacteristics const& spatialCharacteristics,
                                       long    numEls,long    inNode,long    outNode,
-                                      double  InitialInletArea,double  InitialOutletArea,
                                       double  InitialFlow,int matID,char* lossType,
                                       double branchAngle,int upstreamSegment,int branchSegment,
                                       char* boundType,double* value, double* time, int num){
@@ -121,7 +120,7 @@ int cvOneDModelManager::CreateSegment(char   *segName,long segID, double  segLen
   }
 
   
-  cvOneDSegment *seg = new cvOneDSegment(InitialInletArea,InitialOutletArea,
+  cvOneDSegment *seg = new cvOneDSegment(spatialCharacteristics,
                                          InitialFlow,IsOutlet);
 
   //seg -> setSegmentID(ModelList[currentModel]->getNumberOfSegments());

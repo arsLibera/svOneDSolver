@@ -67,12 +67,12 @@ cvOneD::options simpleArteryOptions() {
     // SEGMENT 
     options.segmentName = {"ARTERY"};
     options.segmentID = {0};
-    options.segmentLength = {20.0};
+    options.segmentsSpatialCharacteristics = {
+        cvOneD::simpleSegmentSpatialCharacteristic(20.0, 2.0, 2.0)
+    };
     options.segmentTotEls = {50};
     options.segmentInNode = {0};
     options.segmentOutNode = {1};
-    options.segmentInInletArea = {2.0};
-    options.segmentInOutletArea = {2.0};
     options.segmentInFlow = {0.0};
     options.segmentMatName = {"MAT1"};
     options.segmentLossType = {"NONE"};
@@ -154,12 +154,14 @@ cvOneD::options bifurcationOptions() {
     // SEGMENT 
     options.segmentName = {"seg0", "seg1", "seg2"};
     options.segmentID = {0, 1, 2};
-    options.segmentLength = {8.6, 8.5, 8.5};
+    options.segmentsSpatialCharacteristics = {
+        cvOneD::simpleSegmentSpatialCharacteristic(8.6, 2.32352192659501, 2.32352192659501),
+        cvOneD::simpleSegmentSpatialCharacteristic(8.5, 1.13097335529233, 1.13097335529233),
+        cvOneD::simpleSegmentSpatialCharacteristic(8.5, 1.13097335529233, 1.13097335529233)
+    };
     options.segmentTotEls = {50, 50, 50};
     options.segmentInNode = {0, 1, 1};
     options.segmentOutNode = {1, 3, 2};
-    options.segmentInInletArea = {2.32352192659501, 1.13097335529233, 1.13097335529233};
-    options.segmentInOutletArea = {2.32352192659501, 1.13097335529233, 1.13097335529233};
     options.segmentInFlow = {0.0, 0.0, 0.0};
     options.segmentMatName = {"MAT1", "MAT1", "MAT1"};
     options.segmentLossType = {"NONE", "NONE", "NONE"};

@@ -29,16 +29,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <ranges>
+
 #include "cvOneDSegmentSpatialCharacteristics.h"
 
-# include "cvOneDException.h"
+#include "cvOneDException.h"
 
 namespace cvOneD{
+
+
+SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(){}
 
 SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(
     std::vector<PositionalCharacteristic> const& valuesIn)
         : values(valuesIn) {}
-
 
 void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc){
     // There must be at least two points
@@ -67,7 +71,7 @@ void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc){
 SegmentSpatialCharacteristics simpleSegmentSpatialCharacteristic(
     double segLength, double inletArea, double outletArea){
     std::vector<PositionalCharacteristic> positionalCharacteristics{
-        {0, segLength},{inletArea, outletArea}};
+        {0.0, inletArea},{segLength, outletArea}};
     return SegmentSpatialCharacteristics(positionalCharacteristics);
 }
         
@@ -77,6 +81,15 @@ double calcSegLength(SegmentSpatialCharacteristics const& ssc){
 
 std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics const&  ssc){
     return {ssc.values.front().area, ssc.values.back().area};
+}
+
+bool PositionalCharacteristic::operator==(const PositionalCharacteristic& rhs) const {
+    return this->z == rhs.z && this->area == rhs.area;
+}
+
+bool SegmentSpatialCharacteristics::operator==(const SegmentSpatialCharacteristics& other) const {
+    return this->values.size() == other.values.size() && 
+           std::equal(this->values.begin(), this->values.end(), other.values.begin());
 }
 
 } // namespace cvOneD
