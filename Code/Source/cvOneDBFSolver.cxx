@@ -1376,10 +1376,6 @@ void cvOneDBFSolver::GenerateSolution(void){
   cout << "Total Solution is: " << numSteps << " x ";
   cout << currentSolution -> GetDimension() << endl;
 
-  cvOneDString String1( "step_");
-  char String2[] = "99999";
-  cvOneDString title;
-
   previousSolution->Rename( "step_0");
   *currentSolution = *previousSolution;
 
@@ -1564,9 +1560,8 @@ void cvOneDBFSolver::GenerateSolution(void){
 
   // Save solution if needed
   if(step % stepSize == 0){
-    sprintf( String2, "%ld", (unsigned long)step);
-    title = String1 + String2;
-    currentSolution->Rename(title.data());
+    std::string const title = "step_" + std::to_string(step);
+    currentSolution->Rename(title.c_str());
 
     double * tmp = currentSolution -> GetEntries();
     int j;
