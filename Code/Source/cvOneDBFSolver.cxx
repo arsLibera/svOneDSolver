@@ -1343,23 +1343,24 @@ void cvOneDBFSolver::CreateGlobalArrays(void){
 
 // Initialize the solution, that is, area as area input and flow rate as 0 except the inlet
 void cvOneDBFSolver::CalcInitProps(long ID){
-  double Qo, dQ0dT;
   auto const& subdomain = subdomainList[ID];
-  Qo = subdomain -> GetInitialFlow();
-  dQ0dT=0;
+  
+  std::cout << "NODE AND AREAS" << endl;
 
-  for( long node = 0; node < subdomain->GetNumberOfNodes(); node++){
-  double zn = subdomain->GetNodalCoordinate( node);
-  long eqNumbers[2];
-  mathModels[0]->GetNodalEquationNumbers(node, eqNumbers, ID);
+  for(long nodeIndex = 0; nodeIndex < subdomain->GetNumberOfNodes(); nodeIndex++){
+    // z position of this node
+    double z = subdomain->GetNodalCoordinate(nodeIndex);
+    long eqNumbers[2];
+    mathModels[0]->GetNodalEquationNumbers(nodeIndex, eqNumbers, ID);
 
-  // Linear Interpolation
-  // This is "Si"
-  // TODO: verify this calcluation makes sense
-  double initialAreaAtZn = getInterpolatedArea(zn, subdomain->getSpatialCharacteristics());
-  (*previousSolution)[eqNumbers[0]] = initialAreaAtZn;
+    // Linear Interpolation for initial area at z (= Si)
+    // Compared this to the values computed previously and
+    // they matched.
+    double const initialAreaAtZ = getInterpolatedArea(z, subdomain->getSpatialCharacteristics());
+    (*previousSolution)[eqNumbers[0]] = initialAreaAtZ;
 
-    if(node == 0){
+    if(nodeIndex == 0){
+      double const Qo = subdomain->GetInitialFlow();
       (*previousSolution)[eqNumbers[1]] = Qo;
     }else{
       (*previousSolution)[eqNumbers[1]] = 0.0;

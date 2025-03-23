@@ -50,10 +50,6 @@ class cvOneDMaterialOlufsen:public cvOneDMaterial{
     cvOneDMaterialOlufsen (const cvOneDMaterialOlufsen &rhs );
     cvOneDMaterialOlufsen& operator= ( const cvOneDMaterialOlufsen &that);
 
-    void   SetAreas_and_length(double S_top, double S_bottom, double z);
-    void   SetStop(double S){Stop = S;}
-    void   SetSbottom(double S){Sbot = S;}
-    void   SetLength(double length){len = length;}
     void   SetMaterialType(double*, double);
     double GetProperty( char* what) const;
     double GetArea( double pressure, double z) const;
@@ -66,8 +62,6 @@ class cvOneDMaterialOlufsen:public cvOneDMaterial{
     double GetIntegralpD2S ( double area, double z) const; 
 	double GetIntegralpS ( double area, double z) const;
 	double GetDpDz( double area, double z) const;
-    double GetTopArea() const {return Stop;}
-    double GetBotArea() const {return Sbot;}
     double GetEHR(double z) const;
     double GetMette2(double area,double z) const;
  	double GetN(double S) const;
@@ -82,10 +76,6 @@ class cvOneDMaterialOlufsen:public cvOneDMaterial{
     void GetParams(double *K1, double *K2, double *K3, double *Pref) const {*K1 = K1_; *K2 = K2_; *K3 = K3_; *Pref=PP1_;};
 
  private:
-
-    double Stop;
-    double Sbot;
-    double len;
 
     double Period;
 
@@ -102,7 +92,6 @@ class cvOneDMaterialOlufsen:public cvOneDMaterial{
 
     double GetS1( double z) const;
     double GetDS1Dz( double z) const;
-    double GetDr1Dz(double z) const;
 
 };
 

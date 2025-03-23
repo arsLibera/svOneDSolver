@@ -50,10 +50,6 @@ class cvOneDMaterialLinear:public cvOneDMaterial{
     cvOneDMaterialLinear (const cvOneDMaterialLinear &rhs);
     cvOneDMaterialLinear& operator= ( const cvOneDMaterialLinear &that);
 
-    void   SetAreas_and_length(double S_top, double S_bottom, double z);
-    void   SetStop(double S){Stop = S;}
-    void   SetSbottom(double S){Sbot = S;}
-    void   SetLength(double length){len = length;}
     double GetProperty( char* what) const;
     double GetArea( double pressure, double z) const;
     double GetPressure( double S, double z) const;
@@ -65,8 +61,6 @@ class cvOneDMaterialLinear:public cvOneDMaterial{
     double GetIntegralpD2S ( double area, double z) const;
     double GetIntegralpS ( double area, double z) const;
     double GetDpDz( double area, double z) const;
-    double GetTopArea() const {return Stop;}
-    double GetBotArea() const {return Sbot;}
     void   SetEHR(double ehr_val, double pref_val);
     double GetEHR(double z) const;
     double GetMette2(double area,double z) const;
@@ -77,16 +71,11 @@ class cvOneDMaterialLinear:public cvOneDMaterial{
 
   private:
 
-    double Stop;
-    double Sbot;
-    double len;
-
     double ehr;
     double PP1_;
 
     double GetS1( double z) const;
     double GetDS1Dz( double z) const;
-    double GetDr1Dz(double z) const;
 };
 
 #endif // CVONEDMATERIALLINEAR_H

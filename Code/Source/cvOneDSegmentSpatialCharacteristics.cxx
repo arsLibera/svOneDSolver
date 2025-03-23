@@ -30,7 +30,7 @@
  */
 
 #include <ranges>
-
+#include <algorithm>
 #include <cmath>
 
 #include "cvOneDSegmentSpatialCharacteristics.h"
@@ -102,15 +102,30 @@ std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics co
     return {ssc.values.front().area, ssc.values.back().area};
 }
 
-
 double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc) {
-    double const zInlet = ssc.values.front().z;
-    double const zOutlet = ssc.values.back().z;
-    double const inletArea = ssc.values.front().area;
-    double const outletArea = ssc.values.back().area;
+    // If it's outside the domain (which it shouldn't ever be)
+    // we'll just use the boundary values.
+    if (z <= ssc.values.front().z) {
+        return ssc.values.front().area;
+    }
+    if (z >= ssc.values.back().z) {
+        return ssc.values.back().area;
+    }
 
-    // Interpolate to get the area at a given z-position.
-    return linearInterpolate(z, zInlet, inletArea, zOutlet, outletArea);
+    // Find the iterator to the z-position just before and after this point
+    // (z guaranteed to lie in the domain because of the prior check, unless
+    // somehow there's fewer than two points...which means bad input data)
+    auto iter = std::find_if(ssc.values.begin(), ssc.values.end(),
+            [z](const PositionalCharacteristic& pos) { 
+                return pos.z >= z; 
+            }
+        );
+
+    auto iterPrev = std::prev(iter);
+
+    // Return the interpolated area
+    return linearInterpolate(z, 
+        iterPrev->z, iterPrev->area, iter->z, iter->area);
 }
 
 double getInterpolatedRadius(double z, SegmentSpatialCharacteristics const& ssc) {

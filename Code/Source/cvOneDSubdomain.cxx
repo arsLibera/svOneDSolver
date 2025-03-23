@@ -139,6 +139,7 @@ void cvOneDSubdomain::SetMeshType(MeshType mType){
 
 void cvOneDSubdomain::Init(cvOneD::SegmentSpatialCharacteristics const& spatialCharacteristicsIn){
   spatialCharacteristics = spatialCharacteristicsIn;
+  
   char errStr[256];
   nodes = new double[numberOfNodes];
   connectivities = new long[ 2 * numberOfElements];
@@ -153,12 +154,12 @@ void cvOneDSubdomain::Init(cvOneD::SegmentSpatialCharacteristics const& spatialC
   }
 
   // Set the mesh to be uniform
-  double const xL = GetOutletZ();
-  double const x0 = GetInletZ();
-  double h = (xL - x0) / static_cast<double>(numberOfElements);
+  double const z0 = GetInletZ();
+  double const zL = GetOutletZ();
+  double const deltaZ = (zL - z0) / static_cast<double>(numberOfElements);
 
-  for( long i = 0; i < numberOfNodes; i++){
-    nodes[i] = x0 + i * h;
+  for(long i = 0; i < numberOfNodes; i++){
+    nodes[i] = z0 + i * deltaZ;
   }
 
   long nd = 0;

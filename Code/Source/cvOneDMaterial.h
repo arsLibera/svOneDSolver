@@ -94,9 +94,12 @@ class cvOneDMaterial{
     virtual double GetIntegralpD2S (double area, double z) const = 0;
     virtual void   SetPeriod(double period) = 0;
 
-    // Technically speaking, this doesnt at all belong in "material"...
+    // Technically speaking, this doesnt at all belong in "material" ...at all...
     // but for now, we'll keep it here, since there was already 
     // an odd coupling to the spatial characteristics.
+    //
+    // But maybe "material" here could be a spatially resolved material..
+    // its not right now..but I guess it could be..eventually..  
     void SetSpatialCharacteristics(cvOneD::SegmentSpatialCharacteristics const& in){ spatialCharacteristics = in; };
 
     // Computes the initial radius at the z location based on the spatial
@@ -104,6 +107,14 @@ class cvOneDMaterial{
     double Getr1(double z) const{
       // linearly interpolated r
       return cvOneD::getInterpolatedRadius(z, spatialCharacteristics);
+    }
+
+    double GetDr1Dz(double z) const{
+      double const rInlet = cvOneD::getInterpolatedRadius(spatialCharacteristics.values.front().z, spatialCharacteristics);
+      double const rOutlet = cvOneD::getInterpolatedRadius(spatialCharacteristics.values.back().z, spatialCharacteristics);
+      double const segmentLength = cvOneD::calcSegLength(spatialCharacteristics);
+
+      return (rOutlet - rInlet)/segmentLength; // = drodz (These values are the initial radii.)
     }
 
     double GetProfileExponent() const {return profile_exponent;}

@@ -129,15 +129,6 @@ double cvOneDMaterialLinear::GetDS1Dz(double z)const{
   return dsodro*drodz;  // slightly increased pressure/decreased area
 }
 
-double cvOneDMaterialLinear::GetDr1Dz(double z) const{
-  double r_top = sqrt(Stop/M_PI);
-  double r_bot = sqrt(Sbot/M_PI);
-  double drodz = ((r_bot - r_top)/len) ; // These values are the initial radii.
-
-  return drodz;
-}
-
-
 double cvOneDMaterialLinear::GetArea(double pressure, double z)const{
   // NOTE: o "So_" is the LSA under pressure p1_.
   //         This property comes from the subdomain

@@ -138,12 +138,6 @@ double cvOneDMaterialOlufsen::GetEHR(double z)const{
   return ans;
 }
 
-void cvOneDMaterialOlufsen::SetAreas_and_length(double S_top,double S_bottom,double z){
-  Stop = S_top;//inlet
-  Sbot = S_bottom;//outlet
-  len = z;
-}
-
 double cvOneDMaterialOlufsen::GetS1(double z)const{
   double area;
   double r=Getr1(z);
@@ -156,18 +150,6 @@ double cvOneDMaterialOlufsen::GetDS1Dz(double z)const{
   double dsdr= 2.0*PI*Getr1(z);
   return dsdr*drdz;  // slightly increased pressure/decreased area
 }
-
-
-//this is in the reference state dr1dz
-double cvOneDMaterialOlufsen::GetDr1Dz(double z)const{
-  // linearly vary radius
-  double r_top=sqrt(Stop/PI);
-  double r_bot=sqrt(Sbot/PI);
-  double drdz=((r_bot - r_top)/len) ;
-
-  return drdz;
-}
-
 
 double cvOneDMaterialOlufsen::GetArea(double pressure, double z)const{
   // NOTE: o "So_" is the LSA under pressure p1_.
