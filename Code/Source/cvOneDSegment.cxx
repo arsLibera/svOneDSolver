@@ -142,12 +142,22 @@ long cvOneDSegment::getNumElements(void){
   return NumElements;
 }
 
-double cvOneDSegment::getInitInletS(void) {
-  return spatialCharacteristics.values.front().area;
+namespace{
+  double linearInterpolate(double x, double x1, double y1, double x2, double y2) {
+    return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+  }
+} // namespace
+
+double cvOneDSegment::getInitialArea(double z){
+  return cvOneD::getInterpolatedArea(z, spatialCharacteristics);
 }
 
-double cvOneDSegment::getInitOutletS(void) {
-  return spatialCharacteristics.values.back().area;
+double cvOneDSegment::getInitialRadius(double z){
+  return cvOneD::getInterpolatedRadius(z, spatialCharacteristics);
+}
+
+const cvOneD::SegmentSpatialCharacteristics& cvOneDSegment::getSpatialCharacteristics(){
+  return spatialCharacteristics;
 }
 
 double cvOneDSegment::getInitialPressure(void){

@@ -49,6 +49,7 @@
 #include "cvOneDMaterial.h"
 #include "cvOneDMaterialOlufsen.h"
 #include "cvOneDError.h"
+#include "cvOneDSegmentSpatialCharacteristics.h"
 
 class cvOneDSubdomain{
 
@@ -63,7 +64,7 @@ class cvOneDSubdomain{
     void SetNumberOfElements(long);
     void SetMeshType(MeshType mType);
 
-    void Init(double x0, double xL);
+    void Init(cvOneD::SegmentSpatialCharacteristics const& in);
 
     long GetNumberOfNodes() const;
     long GetNumberOfElements() const;
@@ -74,19 +75,20 @@ class cvOneDSubdomain{
 
 	cvOneDFiniteElement* GetElement( long element) const;
 
-    void SetInitInletS(double So);
-    void SetInitOutletS(double Sn);
+    // Initial spatial characteristics of this vessel
+    const cvOneD::SegmentSpatialCharacteristics& getSpatialCharacteristics();
+
+    // Retained for clients
+    double GetInletZ();
+    double GetOutletZ();
+    double GetLength();
+
+
     void SetFinalArea(double Sn);
     void SetInitialFlow(double Qo);
     void SetInitialPressure(double P0);
     void SetInitialdFlowdT(double dQ0dT);
     void SetStenosisInfo(bool is) {isStenosis = is;}
-    double GetInletZ(){return z_in;}
-    double GetOutletZ() {return z_out;}
-    double GetLength() {return fabs(z_out - z_in);}
-    double GetInitInletS(void);
-    double GetInitOutletS(void);
-    double GetFinalArea();
     double GetInitialFlow(void);
     double GetInitialPressure(void);
     double GetInitialdFlowdT(void);
@@ -206,13 +208,10 @@ class cvOneDSubdomain{
   private:
     // The initial state & dimensions.
     int ID;
-    double S_initial;
-    double S_final;
+    cvOneD::SegmentSpatialCharacteristics spatialCharacteristics;
     double Q_initial;
     double P_initial;
     double dQ_dT_initial;
-    double z_in;
-    double z_out;
 
     long numberOfElements;
     // the ID of the first node in the global range

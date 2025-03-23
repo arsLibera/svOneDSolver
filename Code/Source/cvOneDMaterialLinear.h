@@ -85,7 +85,6 @@ class cvOneDMaterialLinear:public cvOneDMaterial{
     double PP1_;
 
     double GetS1( double z) const;
-    double Getr1( double z) const;
     double GetDS1Dz( double z) const;
     double GetDr1Dz(double z) const;
 };

@@ -70,12 +70,20 @@ cvOneDSubdomain::~cvOneDSubdomain(){
   if(PressLVTime != NULL)  delete [] PressLVTime;// Added by Jongmin Seo 04062020 & Hyunjin Kim 09022005
 }
 
-void cvOneDSubdomain::SetInitInletS(double So){
-  S_initial = So;
+const cvOneD::SegmentSpatialCharacteristics& cvOneDSubdomain::getSpatialCharacteristics(){
+  return spatialCharacteristics;
 }
 
-void cvOneDSubdomain::SetInitOutletS(double Sn){
-  S_final = Sn;
+double cvOneDSubdomain::GetInletZ(){
+  return spatialCharacteristics.values.front().z;
+}
+
+double cvOneDSubdomain::GetOutletZ(){
+  return spatialCharacteristics.values.back().z;
+}
+
+double cvOneDSubdomain::GetLength(){
+    return GetOutletZ() - GetInletZ();
 }
 
 void cvOneDSubdomain::SetInitialFlow(double Qo){
@@ -94,13 +102,13 @@ void cvOneDSubdomain::SetInitialdFlowdT(double dQ0dT){
 void cvOneDSubdomain::SetupMaterial(int matID){
   mat = cvOneDGlobal::gMaterialManager->GetNewInstance(matID);
  // printf("subdomain cpp setupMaterial matID=%i  \n", matID);
-  mat->SetAreas_and_length(S_initial, S_final, fabs(z_out - z_in));
+  mat->SetSpatialCharacteristics(spatialCharacteristics);
 }
 
 void cvOneDSubdomain::SetBoundValue(double boundV){
   switch(boundType){
     case BoundCondTypeScope::PRESSURE:
-      boundValue = mat->GetArea(boundV, fabs(z_out-z_in));
+      boundValue = mat->GetArea(boundV, GetLength());
       break;
     default:
       boundValue = boundV;
@@ -108,8 +116,6 @@ void cvOneDSubdomain::SetBoundValue(double boundV){
   }
 }
 
-double cvOneDSubdomain::GetInitInletS(void) {return S_initial;}
-double cvOneDSubdomain::GetInitOutletS(void) {return S_final;}
 double cvOneDSubdomain::GetInitialFlow(void) {return Q_initial;}
 double cvOneDSubdomain::GetInitialPressure(void) {return P_initial;}
 
@@ -131,9 +137,8 @@ void cvOneDSubdomain::SetMeshType(MeshType mType){
   meshType = mType;
 }
 
-void cvOneDSubdomain::Init(double x0, double xL){
-  z_in = x0;
-  z_out = xL;
+void cvOneDSubdomain::Init(cvOneD::SegmentSpatialCharacteristics const& spatialCharacteristicsIn){
+  spatialCharacteristics = spatialCharacteristicsIn;
   char errStr[256];
   nodes = new double[numberOfNodes];
   connectivities = new long[ 2 * numberOfElements];
@@ -148,6 +153,8 @@ void cvOneDSubdomain::Init(double x0, double xL){
   }
 
   // Set the mesh to be uniform
+  double const xL = GetOutletZ();
+  double const x0 = GetInletZ();
   double h = (xL - x0) / static_cast<double>(numberOfElements);
 
   for( long i = 0; i < numberOfNodes; i++){

@@ -59,6 +59,13 @@ struct PositionalCharacteristic{
     bool operator==(const PositionalCharacteristic& other) const;
 };
 
+// We might want to consider encapsulating this data instead so that
+// solver and other output clients are unaware of the implementaiton
+// details, so that if we were to change the format only the input
+// parser would really rely on this. 
+//
+// Of course the algorithms below sort of manage that, but we could
+// make it an explicit boundary.
 struct SegmentSpatialCharacteristics{
     std::vector<PositionalCharacteristic> values = {};
 
@@ -80,6 +87,10 @@ double calcSegLength(SegmentSpatialCharacteristics const& ssc);
 
 // Retrieve the inlet/outlet areas
 std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics const& ssc);
+
+// Get the area or radius at a particular point
+double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc);
+double getInterpolatedRadius(double z, SegmentSpatialCharacteristics const& ssc);
 
 } // namespace cvOneD
 

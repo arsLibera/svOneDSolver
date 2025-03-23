@@ -38,8 +38,10 @@
 //  This class maintains Material Properties of the subdomain.
 //
 
-# include "cvOneDEnums.h"
-# include <math.h>
+#include "cvOneDEnums.h"
+#include "cvOneDSegmentSpatialCharacteristics.h"
+
+#include <math.h>
 
 class cvOneDMaterial{
 
@@ -91,7 +93,18 @@ class cvOneDMaterial{
     virtual double GetDOutflowDp(double pressure, double z) const = 0;
     virtual double GetIntegralpD2S (double area, double z) const = 0;
     virtual void   SetPeriod(double period) = 0;
-    virtual void   SetAreas_and_length(double S_top, double S_bottom, double z) = 0;
+
+    // Technically speaking, this doesnt at all belong in "material"...
+    // but for now, we'll keep it here, since there was already 
+    // an odd coupling to the spatial characteristics.
+    void SetSpatialCharacteristics(cvOneD::SegmentSpatialCharacteristics const& in){ spatialCharacteristics = in; };
+
+    // Computes the initial radius at the z location based on the spatial
+    // characteristics. Again, doesn't really belong here...
+    double Getr1(double z) const{
+      // linearly interpolated r
+      return cvOneD::getInterpolatedRadius(z, spatialCharacteristics);
+    }
 
     double GetProfileExponent() const {return profile_exponent;}
     double GetDensity() const {return density;}
@@ -111,6 +124,8 @@ class cvOneDMaterial{
     double GetReferencedPressure_dt() {return 0; }
 
   protected:
+
+    cvOneD::SegmentSpatialCharacteristics spatialCharacteristics;
 
     double density;
     double dynamicViscosity;

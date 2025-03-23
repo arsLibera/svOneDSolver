@@ -115,25 +115,10 @@ double cvOneDMaterialLinear::GetEHR(double z)const{
   return ehr;
 }
 
-void cvOneDMaterialLinear::SetAreas_and_length(double S_top,double S_bottom,double z){
-  Stop = S_top;//inlet
-  Sbot = S_bottom;//outlet
-  len = z;
-}
-
 double cvOneDMaterialLinear::GetS1(double z)const{
   double r    = Getr1(z);
   double area = r*r*M_PI;
   return area;
-}
-
-double cvOneDMaterialLinear::Getr1(double z)const{
-  // Linearly interpolated r
-  double r_top = sqrt(Stop/M_PI);
-  double r_bot = sqrt(Sbot/M_PI);
-  double r     = ((z-len)/(-len))*(r_top - r_bot) + r_bot;
-  
-  return r;
 }
 
 double cvOneDMaterialLinear::GetDS1Dz(double z)const{

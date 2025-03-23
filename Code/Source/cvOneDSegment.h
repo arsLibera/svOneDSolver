@@ -80,8 +80,18 @@ class cvOneDSegment{
     double   getOutletZ();
     void     setNumElements(long nels);
     long     getNumElements(void);
-    double   getInitInletS(void);
-    double   getInitOutletS(void);
+
+    // We might want to move these instead to meathods
+    // of segment spatial characteristics and 
+    // encapsulate that data. That way, there's less
+    // duplication on these multiple clients.
+    //
+    // And we could potentially change how the spatial
+    // characteristics are determined in the future.
+    double   getInitialArea(double z);
+    double   getInitialRadius(double z);
+    const cvOneD::SegmentSpatialCharacteristics& getSpatialCharacteristics();
+
     double   getInitialFlow(void);
     double   getInitialPressure(void);
     double   getInitialdFlowdT(void);

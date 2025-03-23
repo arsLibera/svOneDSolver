@@ -95,6 +95,15 @@ double                        cvOneDBFSolver::convCriteria = 0;
 BoundCondType                 cvOneDBFSolver::inletBCtype;
 int                           cvOneDBFSolver::ASCII = 1;
 
+
+namespace{
+
+  double linearInterpolate(double x, double x1, double y1, double x2, double y2) {
+      return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+  }
+      
+} // namespace
+
 // SET MODE PTR
 void cvOneDBFSolver::SetModelPtr(cvOneDModel *mdl){
   model = mdl;
@@ -424,7 +433,6 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
   cvDoubleVec tmp;
   cvDoubleMat segNodeList;
   double lengthByNodes = 0.0;
-  double lengthBySegment = 0.0;
   int startOut = 0;
   int finishOut = 0;
   double segLength = 0.0;
@@ -470,7 +478,6 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
     segVers[2][0] /= mod;
 
     lengthByNodes = mod;
-    lengthBySegment = currSeg->getSegmentLength();
 
     // Compute Segment Local axis system
     evalSegmentLocalAxis(segVers);
@@ -484,8 +491,12 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
       currCentre[2] = nodeList[inletSegJoint][2] + loopEl*lengthByNodes/double(currSeg->getNumElements())*segVers[2][0];
 
       // Get initial radius at current location
-      currIniArea = currSeg->getInitInletS() + (loopEl/double(currSeg->getNumElements()))*(currSeg->getInitOutletS() - currSeg->getInitInletS());
-      currIniRad = sqrt(currIniArea/M_PI);
+
+      // TODO: verify this is the correct "z" location we want
+      // to interpolate at. These loops and myriad variables make
+      // something super simple super confusing.
+      double const zAxial = linearInterpolate(loopEl, 0, currSeg->getInletZ(), currSeg->getNumElements(), currSeg->getOutletZ());
+      currIniRad = currSeg->getInitialRadius(zAxial);
 
       // Loop on the subdivisions
       for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
@@ -559,7 +570,14 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
       for(int j=startOut;j<finishOut;j+=2){
 
         // Evaluate Initial Area at current location
-        iniArea = currSeg->getInitInletS() + (((j-startOut)/2)/double(currSeg->getNumElements()))*(currSeg->getInitOutletS() - currSeg->getInitInletS());
+        
+        // TODO: verify this is the correct "z" location we want
+        // to interpolate at. These loops and myriad variables make
+        // something super simple super confusing.
+        double const zAxial = linearInterpolate((j-startOut)/2.0, 
+          startOut, currSeg->getInletZ(), finishOut, currSeg->getOutletZ());
+        iniArea = currSeg->getInitialArea(zAxial);
+
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];
         // Evaluate Radial displacement
@@ -738,7 +756,6 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
   cvDoubleVec tmp;
   cvDoubleMat segNodeList;
   double lengthByNodes = 0.0;
-  double lengthBySegment = 0.0;
   int startOut = 0;
   int finishOut = 0;
   double segLength = 0.0;
@@ -812,7 +829,6 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
       segVers[2][0] /= mod;
 
       lengthByNodes = mod;
-      lengthBySegment = currSeg->getSegmentLength();
 
       // Compute Segment Local axis system
       evalSegmentLocalAxis(segVers);
@@ -826,9 +842,13 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
         currCentre[2] = nodeList[inletSegJoint][2] + loopEl*lengthByNodes/double(currSeg->getNumElements())*segVers[2][0];
 
         // Get initial radius at current location
-        currIniArea = currSeg->getInitInletS() + (loopEl/double(currSeg->getNumElements()))*(currSeg->getInitOutletS() - currSeg->getInitInletS());
-        currIniRad = sqrt(currIniArea/M_PI);
-
+             
+        // TODO: verify this is the correct "z" location we want
+        // to interpolate at. These loops and myriad variables make
+        // something super simple super confusing.
+        double const zAxial = linearInterpolate(loopEl, 0, currSeg->getInletZ(), currSeg->getNumElements(), currSeg->getOutletZ());
+        currIniRad = currSeg->getInitialRadius(zAxial);
+        
         // Loop on the subdivisions
         for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
           currTheta = loopSubdiv*2*M_PI/double(circSubdiv);
@@ -899,7 +919,14 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
       for(int j=startOut;j<finishOut;j+=2){
 
         // Evaluate Initial Area at current location
-        iniArea = currSeg->getInitInletS() + (((j-startOut)/2)/double(currSeg->getNumElements()))*(currSeg->getInitOutletS() - currSeg->getInitInletS());
+             
+        // TODO: verify this is the correct "z" location we want
+        // to interpolate at. These loops and myriad variables make
+        // something super simple super confusing.
+        double const zAxial = linearInterpolate((j-startOut)/2.0, 
+          startOut, currSeg->getInletZ(), finishOut, currSeg->getOutletZ());
+        iniArea = currSeg->getInitialArea(zAxial);
+        
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];
         // Evaluate Radial displacement
@@ -1124,19 +1151,15 @@ void cvOneDBFSolver::QuerryModelInformation(void)
     for (i=0; i<is; i++){
       cvOneDSegment* seg = model->getSegment(i);
       long nels = seg->getNumElements();
-      double segLen = seg->getSegmentLength();
       int matID = seg->getMaterialID();
       MeshType mType = seg->getMeshType();
-      double zin = seg->getInletZ();
-      double zout = seg->getOutletZ();
 
       cvOneDSubdomain* subdomain = new cvOneDSubdomain;
       assert(subdomain != 0);
       subdomain -> SetNumberOfNodes(nels+1);
       subdomain -> SetNumberOfElements(nels);
       subdomain -> SetMeshType(mType);
-      subdomain -> Init(zin, zout);
-
+      subdomain -> Init(seg->getSpatialCharacteristics());
 
       // Get the Initial Properties of the subdomain...
       double Qo = 0.0;
@@ -1147,17 +1170,13 @@ void cvOneDBFSolver::QuerryModelInformation(void)
         P0 =  seg->getInitialPressure();
         dQ0_dT = 0.0;
       }
-      double So = seg->getInitInletS();
-      double Sn = seg->getInitOutletS();
       BoundCondType boundT = seg -> getBoundCondition();
       double  boundV= seg -> getBoundValue();
 
       // Set these in the subdomain.
       subdomain->SetInitialFlow(Qo);
       subdomain->SetInitialdFlowdT(dQ0_dT);
-      subdomain->SetInitInletS(So);
       subdomain->SetInitialPressure(P0);
-      subdomain->SetInitOutletS(Sn);
       subdomain->SetGlobal1stNodeID(temp);
       subdomain->SetBoundCondition(boundT);
       if(!seg->IsOutlet){
@@ -1324,22 +1343,21 @@ void cvOneDBFSolver::CreateGlobalArrays(void){
 
 // Initialize the solution, that is, area as area input and flow rate as 0 except the inlet
 void cvOneDBFSolver::CalcInitProps(long ID){
-  double segLen = subdomainList[ID] -> GetLength();
   double Qo, dQ0dT;
-  Qo = subdomainList[ID] -> GetInitialFlow();
+  auto const& subdomain = subdomainList[ID];
+  Qo = subdomain -> GetInitialFlow();
   dQ0dT=0;
 
-  double So = subdomainList[ID] -> GetInitInletS();
-  double Sn = subdomainList[ID] -> GetInitOutletS();
-  for( long node = 0; node < subdomainList[ID]->GetNumberOfNodes(); node++){
-  double zn = subdomainList[ID]->GetNodalCoordinate( node);
+  for( long node = 0; node < subdomain->GetNumberOfNodes(); node++){
+  double zn = subdomain->GetNodalCoordinate( node);
   long eqNumbers[2];
   mathModels[0]->GetNodalEquationNumbers(node, eqNumbers, ID);
 
   // Linear Interpolation
-  double zi = (zn - segLen)/(0.0-segLen);
-  double Si = (zi*(So - Sn)) + Sn;
-  (*previousSolution)[eqNumbers[0]] = Si;
+  // This is "Si"
+  // TODO: verify this calcluation makes sense
+  double initialAreaAtZn = getInterpolatedArea(zn, subdomain->getSpatialCharacteristics());
+  (*previousSolution)[eqNumbers[0]] = initialAreaAtZn;
 
     if(node == 0){
       (*previousSolution)[eqNumbers[1]] = Qo;

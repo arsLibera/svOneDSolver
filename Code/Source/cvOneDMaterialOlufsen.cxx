@@ -151,16 +151,6 @@ double cvOneDMaterialOlufsen::GetS1(double z)const{
   return area;  // slightly increased pressure/decreased area
 }
 
-double cvOneDMaterialOlufsen::Getr1(double z)const{
-  // linearly interpolated r
-  double r_top=sqrt(Stop/PI);
-  double r_bot=sqrt(Sbot/PI);
-  double r=((z-len)/(-len))*(r_top - r_bot) + r_bot;
-
-
-  return r;
-}
-
 double cvOneDMaterialOlufsen::GetDS1Dz(double z)const{
   double drdz=GetDr1Dz(z) ;
   double dsdr= 2.0*PI*Getr1(z);

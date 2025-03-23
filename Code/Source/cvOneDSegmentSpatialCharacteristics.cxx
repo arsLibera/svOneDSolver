@@ -31,11 +31,21 @@
 
 #include <ranges>
 
+#include <cmath>
+
 #include "cvOneDSegmentSpatialCharacteristics.h"
 
 #include "cvOneDException.h"
 
 namespace cvOneD{
+
+namespace{
+
+double linearInterpolate(double x, double x1, double y1, double x2, double y2) {
+    return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+}
+    
+} // namespace
 
 
 SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(){}
@@ -43,6 +53,15 @@ SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(){}
 SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(
     std::vector<PositionalCharacteristic> const& valuesIn)
         : values(valuesIn) {}
+
+bool PositionalCharacteristic::operator==(const PositionalCharacteristic& rhs) const {
+    return this->z == rhs.z && this->area == rhs.area;
+}
+
+bool SegmentSpatialCharacteristics::operator==(const SegmentSpatialCharacteristics& other) const {
+    return this->values.size() == other.values.size() && 
+           std::equal(this->values.begin(), this->values.end(), other.values.begin());
+}
 
 void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc){
     // There must be at least two points
@@ -83,13 +102,23 @@ std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics co
     return {ssc.values.front().area, ssc.values.back().area};
 }
 
-bool PositionalCharacteristic::operator==(const PositionalCharacteristic& rhs) const {
-    return this->z == rhs.z && this->area == rhs.area;
+
+double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc) {
+    double const zInlet = ssc.values.front().z;
+    double const zOutlet = ssc.values.back().z;
+    double const inletArea = ssc.values.front().area;
+    double const outletArea = ssc.values.back().area;
+
+    // Interpolate to get the area at a given z-position.
+    return linearInterpolate(z, zInlet, inletArea, zOutlet, outletArea);
 }
 
-bool SegmentSpatialCharacteristics::operator==(const SegmentSpatialCharacteristics& other) const {
-    return this->values.size() == other.values.size() && 
-           std::equal(this->values.begin(), this->values.end(), other.values.begin());
+double getInterpolatedRadius(double z, SegmentSpatialCharacteristics const& ssc) {
+    // Interpolate to get the area at a given z-position.
+    double const interpolatedArea = getInterpolatedArea(z,ssc);
+
+    // Return the radius
+    return sqrt(interpolatedArea / M_PI);
 }
 
 } // namespace cvOneD
