@@ -106,13 +106,14 @@ class cvOneDMaterial{
     // characteristics. Again, doesn't really belong here...
     double Getr1(double z) const{
       // linearly interpolated r
-      return cvOneD::getInterpolatedRadius(z, spatialCharacteristics);
+      return spatialCharacteristics.getInterpolatedRadius(z);
     }
 
     double GetDr1Dz(double z) const{
-      double const rInlet = cvOneD::getInterpolatedRadius(spatialCharacteristics.values.front().z, spatialCharacteristics);
-      double const rOutlet = cvOneD::getInterpolatedRadius(spatialCharacteristics.values.back().z, spatialCharacteristics);
-      double const segmentLength = cvOneD::calcSegLength(spatialCharacteristics);
+      auto const [zInlet,zOutlet] = spatialCharacteristics.inletAndOutletZCoordinates();
+      double const rInlet = spatialCharacteristics.getInterpolatedRadius(zInlet);
+      double const rOutlet = spatialCharacteristics.getInterpolatedRadius(zOutlet);
+      double const segmentLength = spatialCharacteristics.length();
 
       return (rOutlet - rInlet)/segmentLength; // = drodz (These values are the initial radii.)
     }

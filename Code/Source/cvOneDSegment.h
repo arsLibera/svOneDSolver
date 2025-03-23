@@ -75,21 +75,9 @@ class cvOneDSegment{
     void    *getParentModel(void);
 
     // Segment Length/Numels/Type (defines mesh spacing);
-    double   getSegmentLength(void);
-    double   getInletZ();
-    double   getOutletZ();
     void     setNumElements(long nels);
     long     getNumElements(void);
 
-    // We might want to move these instead to meathods
-    // of segment spatial characteristics and 
-    // encapsulate that data. That way, there's less
-    // duplication on these multiple clients.
-    //
-    // And we could potentially change how the spatial
-    // characteristics are determined in the future.
-    double   getInitialArea(double z);
-    double   getInitialRadius(double z);
     const cvOneD::SegmentSpatialCharacteristics& getSpatialCharacteristics();
 
     double   getInitialFlow(void);

@@ -98,7 +98,7 @@ int                           cvOneDBFSolver::ASCII = 1;
 
 namespace{
 
-  double linearInterpolate(double x, double x1, double y1, double x2, double y2) {
+  double linearEstimate(double x, double x1, double y1, double x2, double y2) {
       return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
   }
       
@@ -122,7 +122,7 @@ void cvOneDBFSolver::postprocess_Text(){
     cvOneDMaterial* curMat = subdomainList[fileIter]->GetMaterial();
 
     long numEls = curSeg -> getNumElements();
-    double segLength = curSeg->getSegmentLength();
+    double segLength = curSeg->getSpatialCharacteristics().length();
 
     long startOut = elCount;
     long finishOut = elCount + ((numEls+1)*2);
@@ -400,7 +400,7 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
     nodeList.push_back(temp);
     // Second Node
     temp.clear();
-    temp.push_back(currSeg->getSegmentLength());
+    temp.push_back(currSeg->getSpatialCharacteristics().length());
     temp.push_back(0.0);
     temp.push_back(0.0);
     nodeList.push_back(temp);
@@ -495,8 +495,9 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
       // TODO: verify this is the correct "z" location we want
       // to interpolate at. These loops and myriad variables make
       // something super simple super confusing.
-      double const zAxial = linearInterpolate(loopEl, 0, currSeg->getInletZ(), currSeg->getNumElements(), currSeg->getOutletZ());
-      currIniRad = currSeg->getInitialRadius(zAxial);
+      auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
+      double const zAxial = linearEstimate(loopEl, 0, inletZ, currSeg->getNumElements(), outletZ);
+      currIniRad = currSeg->getSpatialCharacteristics().getInterpolatedRadius(zAxial);
 
       // Loop on the subdivisions
       for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
@@ -574,9 +575,10 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
         // TODO: verify this is the correct "z" location we want
         // to interpolate at. These loops and myriad variables make
         // something super simple super confusing.
-        double const zAxial = linearInterpolate((j-startOut)/2.0, 
-          startOut, currSeg->getInletZ(), finishOut, currSeg->getOutletZ());
-        iniArea = currSeg->getInitialArea(zAxial);
+        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
+        double const zAxial = linearEstimate((j-startOut)/2.0, 
+          startOut, inletZ, finishOut,outletZ);
+        iniArea = currSeg->getSpatialCharacteristics().getInterpolatedArea(zAxial);
 
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];
@@ -598,7 +600,7 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
 
       // PRINT PRESSURE IN MMHG
       fprintf(vtkFile,"<DataArray type=\"Float32\" Name=\"Pressure_mmHg_INCR_%05ld_TIME_%.5f\" NumberOfComponents=\"1\" format=\"ascii\">\n",loopTime*stepSize,loopTime*deltaTime*stepSize);
-      segLength = currSeg->getSegmentLength();
+      segLength = currSeg->getSpatialCharacteristics().length();
       curMat = subdomainList[loopSegment]->GetMaterial();
       int section = 0;
       for(int j=startOut;j<finishOut;j+=2){
@@ -721,7 +723,7 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
     nodeList.push_back(temp);
     // Second Node
     temp.clear();
-    temp.push_back(currSeg->getSegmentLength());
+    temp.push_back(currSeg->getSpatialCharacteristics().length());
     temp.push_back(0.0);
     temp.push_back(0.0);
     nodeList.push_back(temp);
@@ -846,9 +848,10 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
         // TODO: verify this is the correct "z" location we want
         // to interpolate at. These loops and myriad variables make
         // something super simple super confusing.
-        double const zAxial = linearInterpolate(loopEl, 0, currSeg->getInletZ(), currSeg->getNumElements(), currSeg->getOutletZ());
-        currIniRad = currSeg->getInitialRadius(zAxial);
-        
+        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
+        double const zAxial = linearEstimate(loopEl, 0, inletZ, currSeg->getNumElements(), outletZ);
+        currIniRad = currSeg->getSpatialCharacteristics().getInterpolatedRadius(zAxial);
+
         // Loop on the subdivisions
         for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
           currTheta = loopSubdiv*2*M_PI/double(circSubdiv);
@@ -923,10 +926,11 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
         // TODO: verify this is the correct "z" location we want
         // to interpolate at. These loops and myriad variables make
         // something super simple super confusing.
-        double const zAxial = linearInterpolate((j-startOut)/2.0, 
-          startOut, currSeg->getInletZ(), finishOut, currSeg->getOutletZ());
-        iniArea = currSeg->getInitialArea(zAxial);
-        
+        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
+        double const zAxial = linearEstimate((j-startOut)/2.0, 
+          startOut, inletZ, finishOut, outletZ);
+        iniArea = currSeg->getSpatialCharacteristics().getInterpolatedArea(zAxial);
+
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];
         // Evaluate Radial displacement
@@ -947,7 +951,7 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
 
       // PRINT PRESSURE IN MMHG
       fprintf(vtkFile,"<DataArray type=\"Float32\" Name=\"Pressure_mmHg\" NumberOfComponents=\"1\" format=\"ascii\">\n");
-      segLength = currSeg->getSegmentLength();
+      segLength = currSeg->getSpatialCharacteristics().length();
       int section = 0;
       for(int j=startOut;j<finishOut;j+=2){
         z = (section/(double)currSeg->getNumElements())*segLength;
@@ -1356,7 +1360,7 @@ void cvOneDBFSolver::CalcInitProps(long ID){
     // Linear Interpolation for initial area at z (= Si)
     // Compared this to the values computed previously and
     // they matched.
-    double const initialAreaAtZ = getInterpolatedArea(z, subdomain->getSpatialCharacteristics());
+    double const initialAreaAtZ = subdomain->getSpatialCharacteristics().getInterpolatedArea(z);
     (*previousSolution)[eqNumbers[0]] = initialAreaAtZ;
 
     if(nodeIndex == 0){

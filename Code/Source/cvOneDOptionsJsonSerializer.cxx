@@ -207,7 +207,7 @@ nlohmann::ordered_json serializeSpatialCharacteristics(const cvOneD::SegmentSpat
     nlohmann::ordered_json zArray = nlohmann::ordered_json::array();
     nlohmann::ordered_json areaArray = nlohmann::ordered_json::array();
 
-    for (const auto& value : spatialCharacteristics.values) {
+    for (const auto& value : spatialCharacteristics.getValues()) {
         zArray.push_back(value.z);
         areaArray.push_back(value.area);
     }

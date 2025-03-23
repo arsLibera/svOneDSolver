@@ -121,19 +121,6 @@ void *cvOneDSegment::getParentModel(void){
   return parentModel;
 }
 
-double cvOneDSegment::getInletZ() {
-  return spatialCharacteristics.values.front().z;
-}
-
-double cvOneDSegment::getOutletZ() {
-  return spatialCharacteristics.values.back().z;
-}
-
-double cvOneDSegment::getSegmentLength(void) {
-  // The segment length is the distance between the start and end of this segment.
-  return spatialCharacteristics.values.back().z - spatialCharacteristics.values.front().z;
-}
-
 void cvOneDSegment::setNumElements(long nels){
   NumElements = nels;
 }
@@ -147,14 +134,6 @@ namespace{
     return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
   }
 } // namespace
-
-double cvOneDSegment::getInitialArea(double z){
-  return cvOneD::getInterpolatedArea(z, spatialCharacteristics);
-}
-
-double cvOneDSegment::getInitialRadius(double z){
-  return cvOneD::getInterpolatedRadius(z, spatialCharacteristics);
-}
 
 const cvOneD::SegmentSpatialCharacteristics& cvOneDSegment::getSpatialCharacteristics(){
   return spatialCharacteristics;

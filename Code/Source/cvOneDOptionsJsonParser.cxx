@@ -202,13 +202,7 @@ cvOneD::SegmentSpatialCharacteristics parseSpatialCharacteristics(const nlohmann
                 throw std::invalid_argument("Spatial characteristics 'z' and 'area' arrays must have the same length.");
             }
 
-            std::vector<cvOneD::PositionalCharacteristic> positionalCharacteristics;
-            for (size_t i = 0; i < zCoordinates.size(); ++i) {
-                positionalCharacteristics.push_back(
-                    {zCoordinates[i].get<double>(), areas[i].get<double>()}
-                );
-            }
-            return cvOneD::SegmentSpatialCharacteristics(positionalCharacteristics);
+            return cvOneD::SegmentSpatialCharacteristics(zCoordinates, areas);
         } else {
             throw std::invalid_argument("'spatialCharacteristics' must contain both 'z' and 'area' arrays.");
         }

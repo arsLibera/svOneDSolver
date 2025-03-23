@@ -442,8 +442,8 @@ void printSegmentData(options const& opts,FILE* f){
     // To print the sizes, we need to interpret them from the 
     // spatial characteristics.
     auto const& ssc = opts.segmentsSpatialCharacteristics.at(loopA);
-    auto const segLength = calcSegLength(ssc);
-    auto const [segInletArea, segOutletArea] = segInletAndOutletAreas(ssc);
+    auto const segLength = ssc.length();
+    auto const [segInletArea, segOutletArea] = ssc.inletAndOutletAreas();
     fprintf(f,"LENGTH: %f\n",segLength);
 
     fprintf(f,"NUM ELEMENTS: %ld\n",opts.segmentTotEls[loopA]);

@@ -51,8 +51,17 @@ double linearInterpolate(double x, double x1, double y1, double x2, double y2) {
 SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(){}
 
 SegmentSpatialCharacteristics::SegmentSpatialCharacteristics(
-    std::vector<PositionalCharacteristic> const& valuesIn)
-        : values(valuesIn) {}
+    std::vector<double> const& zCoordinates, std::vector<double> const& areas){
+
+    if(zCoordinates.size() != areas.size()){
+        throw cvException("ERROR: input spatial characteristic z coordinates "
+            "and corresponding areas must have the same size.");
+    }
+
+    for (size_t i = 0; i < zCoordinates.size(); ++i) {
+        this->values.push_back({zCoordinates.at(i), areas.at(i)});
+    }
+}
 
 bool PositionalCharacteristic::operator==(const PositionalCharacteristic& rhs) const {
     return this->z == rhs.z && this->area == rhs.area;
@@ -63,23 +72,23 @@ bool SegmentSpatialCharacteristics::operator==(const SegmentSpatialCharacteristi
            std::equal(this->values.begin(), this->values.end(), other.values.begin());
 }
 
-void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc){
+void SegmentSpatialCharacteristics::verifyValidData() const{
     // There must be at least two points
-    if(ssc.values.size() < 2){
-        throw cvException(string("ERROR: there are fewer than two points in a vessel segment.").c_str());
+    if(this->values.size() < 2){
+        throw cvException("ERROR: there are fewer than two points in a vessel segment.");
     }
 
     // The areas must be positive
-    for(auto const& value : ssc.values){
+    for(auto const& value : this->values){
         if(value.area < 0){
-            throw cvException(string("ERROR: Negative area value " + std::to_string(value.area) + " found in vessel.").c_str());
+            throw cvException("ERROR: Negative area value " + std::to_string(value.area) + " found in vessel.");
         }
     }
 
     // The z-positions must be sequentially increasing
-    for(size_t k = 0; k < (ssc.values.size()-1); ++k){
-        double const zk = ssc.values.at(k).z;
-        double const zkplus1 = ssc.values.at(k+1).z;
+    for(size_t k = 0; k < (this->values.size()-1); ++k){
+        double const zk = this->values.at(k).z;
+        double const zkplus1 = this->values.at(k+1).z;
         if(zk >= zkplus1){
             throw cvException("ERROR: consecutive z-coordinates of the spatial characteristics must be increasing."
                 " Found consecutive values: " + std::to_string(zk) + " -> next value -> " + std::to_string(zkplus1));
@@ -87,35 +96,32 @@ void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc){
     }
 }
 
-SegmentSpatialCharacteristics simpleSegmentSpatialCharacteristic(
-    double segLength, double inletArea, double outletArea){
-    std::vector<PositionalCharacteristic> positionalCharacteristics{
-        {0.0, inletArea},{segLength, outletArea}};
-    return SegmentSpatialCharacteristics(positionalCharacteristics);
-}
-        
-double calcSegLength(SegmentSpatialCharacteristics const& ssc){
-    return ssc.values.back().z - ssc.values.front().z;
+double SegmentSpatialCharacteristics::length() const {
+    return this->values.back().z - this->values.front().z;
 }
 
-std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics const&  ssc){
-    return {ssc.values.front().area, ssc.values.back().area};
+std::pair<double,double> SegmentSpatialCharacteristics::inletAndOutletAreas() const {
+    return {this->values.front().area, this->values.back().area};
 }
 
-double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc) {
+std::pair<double,double> SegmentSpatialCharacteristics::inletAndOutletZCoordinates() const{
+    return {this->values.front().z, this->values.back().z};
+}
+
+double SegmentSpatialCharacteristics::getInterpolatedArea(double z) const {
     // If it's outside the domain (which it shouldn't ever be)
     // we'll just use the boundary values.
-    if (z <= ssc.values.front().z) {
-        return ssc.values.front().area;
+    if (z <= this->values.front().z) {
+        return this->values.front().area;
     }
-    if (z >= ssc.values.back().z) {
-        return ssc.values.back().area;
+    if (z >= this->values.back().z) {
+        return this->values.back().area;
     }
 
     // Find the iterator to the z-position just before and after this point
     // (z guaranteed to lie in the domain because of the prior check, unless
     // somehow there's fewer than two points...which means bad input data)
-    auto iter = std::find_if(ssc.values.begin(), ssc.values.end(),
+    auto iter = std::find_if(this->values.begin(), this->values.end(),
             [z](const PositionalCharacteristic& pos) { 
                 return pos.z >= z; 
             }
@@ -128,12 +134,24 @@ double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc) {
         iterPrev->z, iterPrev->area, iter->z, iter->area);
 }
 
-double getInterpolatedRadius(double z, SegmentSpatialCharacteristics const& ssc) {
+double SegmentSpatialCharacteristics::getInterpolatedRadius(double z) const {
     // Interpolate to get the area at a given z-position.
-    double const interpolatedArea = getInterpolatedArea(z,ssc);
+    double const interpolatedArea = getInterpolatedArea(z);
 
     // Return the radius
     return sqrt(interpolatedArea / M_PI);
 }
 
+std::vector<PositionalCharacteristic> const& SegmentSpatialCharacteristics::getValues() const{
+    return values;
+}
+
+SegmentSpatialCharacteristics simpleSegmentSpatialCharacteristic(
+    double segLength, double inletArea, double outletArea){
+    std::vector<double> const z{0, segLength};
+    std::vector<double> const area{inletArea, outletArea};
+
+    return SegmentSpatialCharacteristics(z, area);
+}
+        
 } // namespace cvOneD

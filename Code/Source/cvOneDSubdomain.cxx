@@ -75,15 +75,17 @@ const cvOneD::SegmentSpatialCharacteristics& cvOneDSubdomain::getSpatialCharacte
 }
 
 double cvOneDSubdomain::GetInletZ(){
-  return spatialCharacteristics.values.front().z;
+  auto const zInletAndOutlet = spatialCharacteristics.inletAndOutletZCoordinates();
+  return zInletAndOutlet.first;
 }
 
 double cvOneDSubdomain::GetOutletZ(){
-  return spatialCharacteristics.values.back().z;
+  auto const zInletAndOutlet = spatialCharacteristics.inletAndOutletZCoordinates();
+  return zInletAndOutlet.second;
 }
 
 double cvOneDSubdomain::GetLength(){
-    return GetOutletZ() - GetInletZ();
+    return spatialCharacteristics.length();
 }
 
 void cvOneDSubdomain::SetInitialFlow(double Qo){

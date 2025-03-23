@@ -50,8 +50,7 @@ namespace cvOneD{
 //
 // It's always necessary that there are at least two elements, and
 // that first and last elements are the inlet and outlet, but the 
-// structure doesn't need to know that. The input parser does.
-
+// structure doesn't need to know that per se. The input parser does.
 struct PositionalCharacteristic{
     double z; // The position of this point along the vessel axis
     double area; // The initial cross-sectional area of the vessel cavity
@@ -59,38 +58,43 @@ struct PositionalCharacteristic{
     bool operator==(const PositionalCharacteristic& other) const;
 };
 
-// We might want to consider encapsulating this data instead so that
-// solver and other output clients are unaware of the implementaiton
-// details, so that if we were to change the format only the input
-// parser would really rely on this. 
-//
-// Of course the algorithms below sort of manage that, but we could
-// make it an explicit boundary.
-struct SegmentSpatialCharacteristics{
-    std::vector<PositionalCharacteristic> values = {};
+class SegmentSpatialCharacteristics{
 
+  public:
     SegmentSpatialCharacteristics();
-    SegmentSpatialCharacteristics(std::vector<PositionalCharacteristic> const& valuesIn);
-    
-    bool operator==(const SegmentSpatialCharacteristics& other) const;
-};
 
-// Verify that there aren't bad values
-void checkSpatialCharacteristics(SegmentSpatialCharacteristics const& ssc);
+    // Construct from a vector of positions z and corresponding vector of areas
+    // (with the same length).
+    // 
+    // Does not full validate incoming data, instead, that is done when verify
+    // is called (currently). We could roll those together later.
+    SegmentSpatialCharacteristics(std::vector<double> const& z, std::vector<double> const& areas);
+    
+    // Throws if the data is invalid (e.g., if there are fewer than two points)
+    void verifyValidData() const; 
+
+    // Methods for interacting with the data as required by clients
+    double length() const;
+    std::pair<double,double> inletAndOutletZCoordinates() const;
+    std::pair<double,double> inletAndOutletAreas() const;
+    double getInterpolatedArea(double z) const;
+    double getInterpolatedRadius(double z) const;
+
+    // This is exposed for the serializer only. Other clients should use the
+    // methods for interacting with the data. For a better OOP structure,
+    // we would need to refactor this to avoid exposing the data.
+    std::vector<PositionalCharacteristic> const& getValues() const;
+
+    // For testing comparisons
+    bool operator==(const SegmentSpatialCharacteristics& other) const;
+
+  private:
+    std::vector<PositionalCharacteristic> values = {};
+};
 
 // Create a simple segmented spatial characteristic from legacy input values
 SegmentSpatialCharacteristics simpleSegmentSpatialCharacteristic(
     double segLength, double inletArea, double outletArea);
-
-// Compute the distance between start and end of the segment
-double calcSegLength(SegmentSpatialCharacteristics const& ssc);
-
-// Retrieve the inlet/outlet areas
-std::pair<double,double> segInletAndOutletAreas(SegmentSpatialCharacteristics const& ssc);
-
-// Get the area or radius at a particular point
-double getInterpolatedArea(double z, SegmentSpatialCharacteristics const& ssc);
-double getInterpolatedRadius(double z, SegmentSpatialCharacteristics const& ssc);
 
 } // namespace cvOneD
 

@@ -78,11 +78,10 @@ class cvOneDSubdomain{
     // Initial spatial characteristics of this vessel
     const cvOneD::SegmentSpatialCharacteristics& getSpatialCharacteristics();
 
-    // Retained for clients
+    // Retained for clients for now
     double GetInletZ();
     double GetOutletZ();
     double GetLength();
-
 
     void SetFinalArea(double Sn);
     void SetInitialFlow(double Qo);

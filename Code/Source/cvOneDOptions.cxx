@@ -99,7 +99,7 @@ namespace{
     for(size_t k = 0; k < opts.segmentsSpatialCharacteristics.size(); ++k){
 
       try{
-        checkSpatialCharacteristics(opts.segmentsSpatialCharacteristics.at(k));
+        opts.segmentsSpatialCharacteristics.at(k).verifyValidData();
       }
       catch(cvException ex){
         throw cvException("ERROR: invalid segment with ID '"
@@ -118,7 +118,7 @@ namespace{
     for(int loopA=0;loopA<nSegs;loopA++){
       // Get Current Segment Length
       auto const& ssc = opts.segmentsSpatialCharacteristics.at(loopA);
-      auto const segLength = ssc.values.back().z - ssc.values.front().z;
+      auto const segLength = ssc.length();
 
       // Get end nodes
       auto const inNode = opts.segmentInNode[loopA];
