@@ -59,11 +59,11 @@ int getDataTableIDFromStringKey(string key){
   }
 }
 
-size_t findJointNodeIndexOrThrow(const auto& jointNodeName, const auto& nodeNames, const auto& jointName){
+size_t findJointNodeIndexOrThrow(const std::string& jointNodeName, const cvStringVec& nodeNames, const std::string& jointName){
   // Return the index of "nodeNames" that corresponds to the "jointNodeName"
   // or throw a context-specific error.
 
-  auto const iter = std::find(nodeNames.begin(), nodeNames.end(), jointNodeName);
+  std::vector<std::string>::const_iterator iter = std::find(nodeNames.begin(), nodeNames.end(), jointNodeName);
   if (iter == nodeNames.end()) {
     std::string const errMsg = "ERROR: The node '" + jointNodeName + "' required by joint '" 
       + jointName + "' was not found in the list of nodes.";
