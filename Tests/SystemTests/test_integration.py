@@ -18,9 +18,9 @@ def exePath(pytestconfig):
     return os.path.abspath(relativePath)
 
 
-def run_simulation_and_assert_results(testCaseName, tmpdir, exePath, resultData, run_func):
+def run_simulation_and_assert_results(inputFileName, tmpDir, exePath, resultData, runFunc):
     # Run the test case using the provided function (either legacy or converted JSON)
-    results = run_test_case_by_name(testCaseName, tmpdir, exePath, run_func)
+    results = run_test_case_by_name(inputFileName, tmpDir, exePath, runFunc)
 
     # Loop over each result check and assert
     for field, seg, node, time, fun, expectedValue, rtol in resultData:
@@ -28,19 +28,20 @@ def run_simulation_and_assert_results(testCaseName, tmpdir, exePath, resultData,
 
         # Assertion with details
         assert resultValue == pytest.approx(expectedValue, rel=rtol, abs=1e-8), \
-            f"\n\nTest failed for {testCaseName} - Field: {field}, Seg: {seg}, Node: {node}, Time: {time}, Fun: {fun}. " \
+            f"\n\nTest failed for {inputFileName} - Field: {field}, Seg: {seg}, Node: {node}, Time: {time}, Fun: {fun}. " \
             f"\nExpected: {expectedValue}, Got: {resultValue}\n"
 
 
-def run_test_case_by_name(name, testDir, exePath, run_func):
+def run_test_case_by_name(inputFileName, testDir, exePath, runFunc):
     # test file absolute path
-    inputFilePath = os.path.join(os.path.dirname(__file__), 'cases', name + '.in')
+    inputFilePath = os.path.join(os.path.dirname(__file__), 'cases', inputFileName)
 
     # run 1D simulation
-    run_func(inputFilePath, testDir, exePath)
+    runFunc(inputFilePath, testDir, exePath)
 
     # extract results
-    return read_results_1d(testDir, 'results_' + name + '_seg*')
+    testResultName = os.path.splitext(inputFileName)[0]
+    return read_results_1d(testDir, 'results_' + testResultName + '_seg*')
 
 
 def run_oned(inputFilePath, testDir, exePath):
@@ -70,6 +71,26 @@ def run_converted_json_input(inputFilePath, testDir, exePath):
         raise RuntimeError('Test failed. svOneDSolver returned error:\n' + err.output.decode("utf-8"))
 
 
+def run_json_input(inputJsonPath, testDir, exePath):
+    # Run the simulations again, but this time use the JSON input file
+    try:
+        runCommandList = [exePath, "-jsonInput", f'"{inputJsonPath}"']
+        subprocess.check_output(runCommandList, cwd=testDir)
+
+    except subprocess.CalledProcessError as err:
+        raise RuntimeError('Test failed. svOneDSolver returned error:\n' + err.output.decode("utf-8"))
+
+def check_results_existence(res_dir, name):
+    """
+    Check if result files exist in the given directory.
+    Args:
+        res_dir: Directory containing the result files.
+        name: Pattern to search for in result file names.
+    Returns:
+        bool: True if result files exist, False otherwise.
+    """
+
+    
 def read_results_1d(res_dir, name):
     """
     Read results from oneDSolver and store in dictionary
@@ -79,6 +100,12 @@ def read_results_1d(res_dir, name):
     Returns:
         dictionary res[result field][segment id][node, time step]
     """
+
+    # Verify that some result file was found 
+    result_files = glob.glob(os.path.join(res_dir, name + '_*.dat'))
+    if not result_files:
+        raise FileNotFoundError(f"No result files found matching pattern: {name}_*.dat in {res_dir}")
+
     # read from files, store in dict, and remove files
     res = defaultdict(lambda: defaultdict(list))
     for field in ['flow', 'pressure', 'area', 'wss', 'Re']:
@@ -138,55 +165,55 @@ def get_result_value(results, field, seg, node, time, fun):
 # obvious, like a stand-in helper for the first or last)
 
 test_cases = [
-    ('tube_pressure', [
+    ('tube_pressure.in', [
         ('pressure', 0, 0, -1, 'point', 11005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 10000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_pressure_wave', [
+    ('tube_pressure_wave.in', [
         ('pressure', 0, 0, -1, 'point', 10000.0, 1e-8),
         ('pressure', 0, -1, -1, 'point', 9086.52306835, 1e-4),
         ('flow', 0, -1, -1, 'point', 90.8652306835, 1e-4),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_rcr', [
+    ('tube_rcr.in', [
         ('pressure', 0, 0, -1, 'point', 11005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 10000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_rcr_Pd', [
+    ('tube_rcr_Pd.in', [
         ('pressure', 0, 0, -1, 'point', 12005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 11000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_r', [
+    ('tube_r.in', [
         ('pressure', 0, 0, -1, 'point', 11005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 10000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_r_Pd', [
+    ('tube_r_Pd.in', [
         ('pressure', 0, 0, -1, 'point', 12005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 11000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_r_stab', [
+    ('tube_r_stab.in', [
         ('pressure', 0, 0, -1, 'point', 11005.30965, 1e-7),
         ('pressure', 0, -1, -1, 'point', 10000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-16),
         ('area', 0, -1, -1, 'point', 1.0, 1e-5),
     ]),
-    ('tube_stenosis_r', [
+    ('tube_stenosis_r.in', [
         ('pressure', 0, 0, -1, 'point', 10150.68211, 1e-6),
         ('pressure', 2, -1, -1, 'point', 10000.0, 1e-8),
         ('flow', 0, -1, -1, 'point', 100.0, 1e-10),
         ('area', 0, -1, -1, 'point', 10.0, 1e-4),
     ]),
-    ('bifurcation_P', [
+    ('bifurcation_P.in', [
         ('pressure', 0, 0, -1, 'point', 4039.45953118937, 1e-5),
         ('pressure', 0, -1, -1, 'point', 4026.67220709878, 1e-5),
         ('pressure', 1, 0, -1, 'point', 4026.67220709878, 1e-5),
@@ -196,7 +223,7 @@ test_cases = [
         ('flow', 1, -1, -1, 'point', 3.9925, 1e-6),
         ('flow', 2, -1, -1, 'point', 3.9925, 1e-6),
     ]),
-    ('bifurcation_R', [
+    ('bifurcation_R.in', [
         ('pressure', 0, 0, -1, 'point', 3997.46433118937, 1e-5),
         ('pressure', 0, -1, -1, 'point', 3984.67700709878, 1e-5),
         ('pressure', 1, 0, -1, 'point', 3984.67700709878, 1e-5),
@@ -206,7 +233,7 @@ test_cases = [
         ('flow', 1, -1, -1, 'point', 3.9925, 1e-5),
         ('flow', 2, -1, -1, 'point', 3.9925, 1e-5),
     ]),
-    ('bifurcation_R_stab', [
+    ('bifurcation_R_stab.in', [
         ('pressure', 0, 0, -1, 'point', 3997.46433118937, 1e-6),
         ('pressure', 0, -1, -1, 'point', 3984.67700709878, 1e-6),
         ('pressure', 1, 0, -1, 'point', 3984.67700709878, 1e-6),
@@ -216,7 +243,7 @@ test_cases = [
         ('flow', 1, -1, -1, 'point', 3.9925, 1e-6),
         ('flow', 2, -1, -1, 'point', 3.9925, 1e-6),
     ]),
-    ('bifurcation_RCR', [
+    ('bifurcation_RCR.in', [
         ('pressure', 0, 0, np.arange(100, 200), 'mean', 123878.022943, 1e-7),
         ('pressure', 0, 0, np.arange(100, 200), 'max', 168182.372624, 1e-7),
         ('pressure', 0, 0, np.arange(100, 200), 'min', 89237.6441223, 1e-7),
@@ -231,7 +258,7 @@ test_cases = [
         ('flow', 1, -1, np.arange(100, 200), 'max', 24.0553490482, 1e-7),
         ('flow', 1, -1, np.arange(100, 200), 'min', -3.35029015773, 1e-7),
     ]),
-        ('bifurcation_RCR_staticFunc', [
+        ('bifurcation_RCR_staticFunc.in', [
         ('pressure', 0, 0, -1, 'point', 3997.46433118937, 1e-6),
         ('pressure', 0, -1, -1, 'point', 3984.67700709878, 1e-6),
         ('pressure', 1, 0, -1, 'point', 3984.67700709878, 1e-6),
@@ -243,18 +270,39 @@ test_cases = [
     ])
 ]
 
+json_test_cases = [
+    # This case is *ARBITRARY* -- it only verifies against the 
+    # ORIGINAL output by the solver. It needs to be verified
+    # against a mathematically correct solution so we know
+    # that the spatial variations work correctly.
+    ('SpatiallyVaryingAreaTube.json', [
+        ('pressure', 0, 0, -1, 'point', -241605653.202, 1e-7),
+        ('pressure', 0, -1, -1, 'point', 10000.0, 1e-8),
+        ('flow', 0, -1, -1, 'point', 865.450260741, 1e-12),
+        ('area', 0, -1, -1, 'point', 1.500011274, 1e-5),
+    ]),
+]
 
 # Test the simulation results using legacy <name>.in files as input
-@pytest.mark.parametrize("testCaseName, resultData", test_cases)
-def test_simulation_results_legacy_input(tmpdir, exePath, testCaseName, resultData):
-    run_simulation_and_assert_results(testCaseName, tmpdir, exePath, resultData, run_oned)
+@pytest.mark.parametrize("inputFileName, resultData", test_cases)
+def test_simulation_results_legacy_input(tmpdir, exePath, inputFileName, resultData):
+    run_simulation_and_assert_results(inputFileName, tmpdir, exePath, resultData, run_oned)
 
 
 # This test suite verifies that (at the system level) we can:
 #    1. Convert input files <name>.in -> <name>.json in all test cases
 #    2. Run the simulation using the <name>.json input file and verify
 #       the results of the simulation are as expected.
-@pytest.mark.parametrize("testCaseName, resultData", test_cases)
-def test_simulation_results_converted_to_json_input(tmpdir, exePath, testCaseName, resultData):
-    run_simulation_and_assert_results(testCaseName, tmpdir, exePath, resultData, run_converted_json_input)
+@pytest.mark.parametrize("inputFileName, resultData", test_cases)
+def test_simulation_results_converted_to_json_input(tmpdir, exePath, inputFileName, resultData):
+    run_simulation_and_assert_results(inputFileName, tmpdir, exePath, resultData, run_converted_json_input)
+
+
+# This test suite verifies cases that have input JSON files.
+# 1. SpatiallyVaryingAreaTube
+#    Verifies the output when there is a spatially varying
+#    area within the tube.
+@pytest.mark.parametrize("inputFileName, resultData", json_test_cases)
+def test_simulation_json_input(tmpdir, exePath, inputFileName, resultData):
+    run_simulation_and_assert_results(inputFileName, tmpdir, exePath, resultData, run_json_input)
 

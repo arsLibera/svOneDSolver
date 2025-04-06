@@ -491,13 +491,17 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
       currCentre[2] = nodeList[inletSegJoint][2] + loopEl*lengthByNodes/double(currSeg->getNumElements())*segVers[2][0];
 
       // Get initial radius at current location
-
-      // TODO: verify this is the correct "z" location we want
-      // to interpolate at. These loops and myriad variables make
-      // something super simple super confusing.
-      auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
-      double const zAxial = linearEstimate(loopEl, 0, inletZ, currSeg->getNumElements(), outletZ);
-      currIniRad = currSeg->getSpatialCharacteristics().getInterpolatedRadius(zAxial);
+      //
+      // TODO: This should be updated to utilize the spatial characteristics. 
+      // Right now, this won't use the interior points of a spatially varying vessel.
+      // Instead, it uses the legacy values of the input and output areas.
+      // Why? 
+      // We're planning to update the VTK files in an independent change. When that's
+      // done, we can verify that we are using the spatially varying areas correctly
+      // when building the VTK output.
+      auto const [inletArea, outletArea] = currSeg->getSpatialCharacteristics().inletAndOutletAreas();
+      currIniArea = inletArea + (loopEl/double(currSeg->getNumElements()))*(outletArea - inletArea);
+      currIniRad = sqrt(currIniArea/M_PI);
 
       // Loop on the subdivisions
       for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
@@ -571,14 +575,16 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_ONEFILE(){
       for(int j=startOut;j<finishOut;j+=2){
 
         // Evaluate Initial Area at current location
-        
-        // TODO: verify this is the correct "z" location we want
-        // to interpolate at. These loops and myriad variables make
-        // something super simple super confusing.
-        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
-        double const zAxial = linearEstimate((j-startOut)/2.0, 
-          startOut, inletZ, finishOut,outletZ);
-        iniArea = currSeg->getSpatialCharacteristics().getInterpolatedArea(zAxial);
+        //
+        // TODO: This should be updated to utilize the spatial characteristics. 
+        // Right now, this won't use the interior points of a spatially varying vessel.
+        // Instead, it uses the legacy values of the input and output areas.
+        // Why? 
+        // We're planning to update the VTK files in an independent change. When that's
+        // done, we can verify that we are using the spatially varying areas correctly
+        // when building the VTK output.
+        auto const [inletArea, outletArea] = currSeg->getSpatialCharacteristics().inletAndOutletAreas();
+        iniArea = inletArea + (((j-startOut)/2)/double(currSeg->getNumElements()))*(outletArea - inletArea);
 
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];
@@ -844,13 +850,17 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
         currCentre[2] = nodeList[inletSegJoint][2] + loopEl*lengthByNodes/double(currSeg->getNumElements())*segVers[2][0];
 
         // Get initial radius at current location
-             
-        // TODO: verify this is the correct "z" location we want
-        // to interpolate at. These loops and myriad variables make
-        // something super simple super confusing.
-        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
-        double const zAxial = linearEstimate(loopEl, 0, inletZ, currSeg->getNumElements(), outletZ);
-        currIniRad = currSeg->getSpatialCharacteristics().getInterpolatedRadius(zAxial);
+        //
+        // TODO: This should be updated to utilize the spatial characteristics. 
+        // Right now, this won't use the interior points of a spatially varying vessel.
+        // Instead, it uses the legacy values of the input and output areas.
+        // Why? 
+        // We're planning to update the VTK files in an independent change. When that's
+        // done, we can verify that we are using the spatially varying areas correctly
+        // when building the VTK output.
+        auto const [inletArea, outletArea] = currSeg->getSpatialCharacteristics().inletAndOutletAreas();
+        currIniArea = inletArea + (loopEl/double(currSeg->getNumElements()))*(outletArea - inletArea);
+        currIniRad = sqrt(currIniArea/M_PI);
 
         // Loop on the subdivisions
         for(int loopSubdiv=0;loopSubdiv<circSubdiv;loopSubdiv++){
@@ -922,14 +932,16 @@ void cvOneDBFSolver::postprocess_VTK_XML3D_MULTIPLEFILES(){
       for(int j=startOut;j<finishOut;j+=2){
 
         // Evaluate Initial Area at current location
-             
-        // TODO: verify this is the correct "z" location we want
-        // to interpolate at. These loops and myriad variables make
-        // something super simple super confusing.
-        auto const [inletZ, outletZ] = currSeg->getSpatialCharacteristics().inletAndOutletZCoordinates();
-        double const zAxial = linearEstimate((j-startOut)/2.0, 
-          startOut, inletZ, finishOut, outletZ);
-        iniArea = currSeg->getSpatialCharacteristics().getInterpolatedArea(zAxial);
+        //
+        // TODO: This should be updated to utilize the spatial characteristics. 
+        // Right now, this won't use the interior points of a spatially varying vessel.
+        // Instead, it uses the legacy values of the input and output areas.
+        // Why? 
+        // We're planning to update the VTK files in an independent change. When that's
+        // done, we can verify that we are using the spatially varying areas correctly
+        // when building the VTK output.
+        auto const [inletArea, outletArea] = currSeg->getSpatialCharacteristics().inletAndOutletAreas();
+        iniArea = inletArea + (((j-startOut)/2)/double(currSeg->getNumElements()))*(outletArea - inletArea);
 
         // Eval Current Area at current location
         newArea = TotalSolution[loopTime][j];

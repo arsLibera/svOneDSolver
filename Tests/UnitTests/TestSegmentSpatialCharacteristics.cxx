@@ -84,18 +84,19 @@ TEST(SegmentSpatialCharacteristics, legacyConversions){
     EXPECT_EQ(actSegment, expSegment);
 
     // Check length and inlet/outlet values
-    EXPECT_EQ(actSegment.length(), segLength);
-    auto const [inletZ, outletZ] = actSegment.inletAndOutletZCoordinates();
-    EXPECT_EQ(inletZ, 0.0);
-    EXPECT_EQ(outletZ, segLength);
+    auto const [actInletZ, actOutletZ] = actSegment.inletAndOutletZCoordinates();
+    auto const [actInletA, actOutletA] = actSegment.inletAndOutletAreas();
 
-    auto const [inletA, outletA] = actSegment.inletAndOutletAreas();
-    EXPECT_EQ(inletA, inletArea);
-    EXPECT_EQ(outletA, outletArea);
+    EXPECT_EQ(actSegment.length(), segLength);
+    EXPECT_EQ(actInletZ, 0.0);
+    EXPECT_EQ(actOutletZ, segLength);
+    EXPECT_EQ(actInletA, inletArea);
+    EXPECT_EQ(actOutletA, outletArea);
 }
  
 TEST(SegmentSpatialCharacteristics, ctorThrows){
-    // If the Z-coordinates and areas have different sizes, should throw
+    // If the Z-coordinates and areas do not have the same number of elements, 
+    // should throw
     auto const func = [](){ cvOneD::SegmentSpatialCharacteristics({0, 0.1},{0.2}); };
     EXPECT_THROW(func(), std::exception);
 }

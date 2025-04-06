@@ -1,0 +1,142 @@
+{
+  "modelName": "results_SpatiallyVaryingAreaTube_",
+  "solverOptions": {
+    "timeStep": 0.001,
+    "stepSize": 1000,
+    "maxStep": 1000,
+    "quadPoints": 20,
+    "inletDataTableName": "INLETDATA",
+    "boundaryType": "FLOW",
+    "convergenceTolerance": 1e-08,
+    "useIV": 1,
+    "useStab": 1,
+    "outputType": "TEXT"
+  },
+  "materials": [
+    {
+      "name": "MAT1",
+      "type": "OLUFSEN",
+      "density": 1.06,
+      "viscosity": 0.04,
+      "pRef": 0.0,
+      "exponent": 2.0,
+      "param1": 1e+15,
+      "param2": -20.0,
+      "param3": 1000000000.0
+    }
+  ],
+ "nodes": [
+    {
+      "name": "0",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "name": "1",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 1.0
+    },
+    {
+      "name": "2",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 2.0
+    },
+    {
+      "name": "3",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "4",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 4.0
+    },
+    {
+      "name": "5",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 5.0
+    },
+    {
+      "name": "6",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 6.0
+    },
+    {
+      "name": "7",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 7.0
+    },
+    {
+      "name": "8",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 8.0
+    },
+    {
+      "name": "9",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 9.0
+    }
+  ],
+  "joints": [],
+  "segments": [
+    {
+      "name": "seg0",
+      "id": 0,
+      "spatialCharacteristics": {
+        "z": [
+          0.0,
+          3.0,
+          7.0,
+          10.0
+        ],
+        "area": [
+          1.0,
+          0.5,
+          2.0,
+          1.5
+        ]
+      },
+      "totalElements": 50,
+      "inNode": 0,
+      "outNode": 1,
+      "flow": 0.0,
+      "materialName": "MAT1",
+      "lossType": "NONE",
+      "branchAngle": 0.0,
+      "upstreamSegment": 0,
+      "branchSegment": 0,
+      "boundaryType": "RESISTANCE",
+      "dataTableName": "OUTLETDATA"
+    }
+  ],
+  "dataTables": [
+    {
+      "name": "INLETDATA",
+      "type": "LIST",
+      "values": [
+        0.0,
+        100.0,
+        10.0,
+        100.0
+      ]
+    },
+    {
+      "name": "OUTLETDATA",
+      "type": "LIST",
+      "values": [
+        0.0,
+        100.0
+      ]
+    }
+  ]
+}
