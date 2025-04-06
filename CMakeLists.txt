@@ -173,7 +173,7 @@ if(ENABLE_UNIT_TEST)
   # When we bump up against unit tests that require that, we should consider
   # changing the strategy for how we generate executables in cmakelists to
   # handle both use cases.
-  target_link_libraries(UnitTestsExecutable gtest gtest_main pthread)
+  target_link_libraries(UnitTestsExecutable gtest gmock gtest_main pthread)
 
   # It's likely we'll need to include additional directories for some
   # versions of the unit tests. That can be updated when/if we update
